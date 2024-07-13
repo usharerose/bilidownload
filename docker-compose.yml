@@ -1,0 +1,15 @@
+version: '3.7'
+
+services:
+
+  bilidownload-build:
+    build:
+      context: .
+      target: dev
+    image: bilidownload:${IMAGE_TAG:-latest}
+
+  bilidownload-run:
+    image: bilidownload:${IMAGE_TAG:-latest}
+    volumes:
+      - ./:/app/bilidownload/
+    command: ["tail", "-f", "/dev/null"]
