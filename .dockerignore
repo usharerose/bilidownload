@@ -1,0 +1,11 @@
+# Git
+.git
+.gitattributes
+.gitignore
+
+# Jetbrains
+.idea
+
+# Poetry configuration
+poetry.toml
+.venv
