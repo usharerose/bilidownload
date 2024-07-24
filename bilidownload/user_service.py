@@ -1,5 +1,5 @@
 """
-Components on login Bilibili
+Components on Bilibili User actions
 """
 import base64
 from collections import namedtuple
