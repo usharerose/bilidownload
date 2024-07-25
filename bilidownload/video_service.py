@@ -1,35 +1,76 @@
 """
 Components on Bilibili videos
 """
+from enum import Enum
 import re
 from typing import Optional
 
 from .proxy import GetVideoInfoResponse, ProxyService
 
 
+class VideoType(Enum):
+
+    VIDEO = 'video'
+
+
 BVID_LENGTH = 9
-VIDEO_URL_PATTERN = re.compile(fr'/video/(BV1[a-zA-Z0-9]{{{BVID_LENGTH}}})/')
+VIDEO_URL_BV_PATTERN = re.compile(fr'/video/(BV1[a-zA-Z0-9]{{{BVID_LENGTH}}})')
+VIDEO_URL_AV_PATTERN = re.compile(r'/video/av(\d+)')
+
+
+VIDEO_TYPE_MAPPING = {
+    VIDEO_URL_BV_PATTERN: VideoType.VIDEO,
+    VIDEO_URL_AV_PATTERN: VideoType.VIDEO
+}
+
+
+GET_VIDEO_INFO_FUNC_TEMPLATE = '_get_{video_type}_video_info'
 
 
 class VideoService:
 
     @classmethod
-    def is_valid_video_src(cls, url: str) -> bool:
-        search_result = VIDEO_URL_PATTERN.search(url)
-        if not search_result:
-            return False
-        return True
+    def get_video_type(cls, url: str):
+        for pattern, video_type in VIDEO_TYPE_MAPPING.items():
+            search_result = pattern.search(url)
+            if search_result:
+                return video_type
+        return None
 
     @classmethod
-    def get_bvid(cls, url: str) -> str:
-        search_result = VIDEO_URL_PATTERN.search(url)
+    def get_bvid(cls, url: str) -> Optional[str]:
+        search_result = VIDEO_URL_BV_PATTERN.search(url)
+        if search_result is None:
+            return None
         return search_result.group(1)
 
     @classmethod
+    def get_aid(cls, url: str) -> Optional[int]:
+        search_result = VIDEO_URL_AV_PATTERN.search(url)
+        if search_result is None:
+            return None
+        return int(search_result.group(1))
+
+    @classmethod
     def get_video_info(cls, url: str, session_data: Optional[str] = None) -> GetVideoInfoResponse:
-        try:
-            bvid = cls.get_bvid(url)
-        except AttributeError:
+        video_type = cls.get_video_type(url)
+        if video_type is None:
             raise
-        video_info_response_dm = ProxyService.get_video_info_data(bvid, session_data)
+
+        func = getattr(cls, GET_VIDEO_INFO_FUNC_TEMPLATE.format(video_type=video_type.name.lower()))
+        return func(url, session_data)
+
+    @classmethod
+    def _get_video_video_info(
+        cls, url: str,
+        session_data: Optional[str] = None
+    ) -> GetVideoInfoResponse:
+        params = {}
+        aid = cls.get_aid(url)
+        if aid is None:
+            bvid = cls.get_bvid(url)
+            params.update({'bvid': bvid})
+        else:
+            params.update({'aid': aid})
+        video_info_response_dm = ProxyService.get_video_info_data(session_data=session_data, **params)
         return video_info_response_dm
