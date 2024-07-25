@@ -3,9 +3,13 @@ Response models of user info related Bilibili API requests
 """
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from .base import BaseResponseWithTTLModel
+from .base import (
+    BaseResponseWithTTLModel,
+    UserOfficialInfoData,
+    UserOfficialVerifyData
+)
 
 
 __all__ = [
@@ -40,27 +44,6 @@ class UserNameRenderInfoData(BaseModel):
 
     colors_info: ColorsInfoData
     render_scheme: str           # "Default" or "Colorful"
-
-
-class UserOfficialVerifyData(BaseModel):
-
-    type: int       # -1 as unverified, 0 as verified
-    desc: str = ''  # Verification description
-
-
-class UserOfficialInfoData(UserOfficialVerifyData):
-
-    # 0: unverified
-    # 1: personal verified, famous UP
-    # 2: personal verified, V
-    # 3: organization verified, enterprise
-    # 4: organization verified, organization
-    # 5: organization verified, media
-    # 6: organization verified, government
-    # 7: personal verified, Live show host
-    # 9: personal verified, Social KOL
-    role: int
-    title: str  # Title of role
 
 
 class UserPendantData(BaseModel):
@@ -104,7 +87,7 @@ class NavVipInfoData(BaseModel):
     tv_due_date: int                # Unix timestamp when TV VIP expired
     tv_vip_pay_type: int            # 0 is TV VIP unpaid, 1 is paid
     tv_vip_status: int              # 0 has no TV VIP, 1 has TV VIP
-    type: int                       # 0: No VIP; 1：Monthly VIP; 2: Yearly or superior VIP
+    vip_type: int = Field(..., alias='type')  # 0: No VIP; 1：Monthly VIP; 2: Yearly or superior VIP
     vip_pay_type: int               # 0 is VIP unpaid, 1 is paid
 
 
