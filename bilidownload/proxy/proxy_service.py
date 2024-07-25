@@ -139,3 +139,28 @@ class ProxyService:
         )
         data = json.loads(response.content.decode('utf-8'))
         return WebLoginResponse.model_validate(data)
+
+    @classmethod
+    def get_video_info(
+        cls,
+        bvid: str,
+        session_data: Optional[str] = None
+    ) -> Response:
+        session = requests.session()
+        if session_data:
+            session.cookies.set('SESSDATA', session_data)
+        params = {
+            'bvid': bvid
+        }
+        response = session.get(REQUEST_VIDEO_INFO_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
+        return response
+
+    @classmethod
+    def get_video_info_data(
+        cls,
+        bvid: str,
+        session_data: Optional[str] = None
+    ) -> GetVideoInfoResponse:
+        response = cls.get_video_info(bvid, session_data)
+        data = json.loads(response.content.decode('utf-8'))
+        return GetVideoInfoResponse.model_validate(data)
