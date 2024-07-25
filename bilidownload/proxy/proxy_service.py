@@ -10,13 +10,12 @@ import requests
 from requests import Response
 
 from .constants import (
-    HEADERS,
+    REQUEST_VIDEO_INFO_URL,
     REQUEST_WEB_CAPTCHA_URL,
     REQUEST_WEB_LOGIN_URL,
     REQUEST_WEB_PUBLIC_KEY_URL,
     REQUEST_WEB_SPI_URL,
-    REQUEST_WEB_USER_INFO_URL,
-    TIMEOUT
+    REQUEST_WEB_USER_INFO_URL
 )
 from .schemes import (
     GetUserInfoLoginResponse,
@@ -24,8 +23,10 @@ from .schemes import (
     GetWebCaptchaResponse,
     GetWebPublicKeyResponse,
     GetWebSPIResponse,
+    GetVideoInfoResponse,
     WebLoginResponse
 )
+from ..constants import HEADERS, TIMEOUT
 
 
 class ProxyService:
