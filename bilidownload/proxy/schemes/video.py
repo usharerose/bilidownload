@@ -81,7 +81,7 @@ class VideoPagesItemData(BaseModel):
     vid: str                                    # Identifier of outside site video
     weblink: str                                # URL of outside site video
     dimension: VideoDimensionData
-    first_frame: str
+    first_frame: Optional[str] = None
 
 
 class VideoSubtitleAuthorData(BaseModel):
@@ -226,4 +226,4 @@ class GetVideoInfoResponse(BaseResponseWithTTLModel):
     62002：video invisible
     62004：video in review
     """
-    data: Optional[GetVideoInfoData]
+    data: Optional[GetVideoInfoData] = None
