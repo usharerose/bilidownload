@@ -6,6 +6,7 @@ from .schemes import (
     GetBangumiDetailResponse,
     GetBangumiStreamMetaResponse,
     GetCheeseDetailResponse,
+    GetCheeseStreamMetaResponse,
     GetVideoInfoResponse,
     GetVideoStreamMetaResponse,
     GetUserInfoNotLoginData,

@@ -1,6 +1,6 @@
 from .bangumi import GetBangumiDetailResponse, GetBangumiStreamMetaResponse
 from .base import VideoStreamMetaLiteSupportFormatItemData
-from .cheese import GetCheeseDetailResponse
+from .cheese import GetCheeseDetailResponse, GetCheeseStreamMetaResponse
 from .finger import GetWebSPIResponse  # NOQA
 from .login import (
     GetWebCaptchaResponse,  # NOQA

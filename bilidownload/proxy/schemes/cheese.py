@@ -5,10 +5,14 @@ from typing import Any, List, Optional
 
 from pydantic import BaseModel, Field
 
-from .base import BaseResponseModel, PendantData
+from .base import (
+    BaseResponseModel,
+    PendantData,
+    VideoStreamMetaLiteSupportFormatItemData
+)
 
 
-__all__ = ['GetCheeseDetailResponse']
+__all__ = ['GetCheeseDetailResponse', 'GetCheeseStreamMetaResponse']
 
 
 class CheeseAbtestInfo(BaseModel):
@@ -301,3 +305,93 @@ class GetCheeseDetailResponse(BaseResponseModel):
     -404：video unavailable
     """
     data: Optional[GetCheeseDetailData] = None
+
+
+class CheeseStreamDashMediaSegmentBaseData(BaseModel):
+
+    initialization: str
+    index_range: str
+
+
+class CheeseStreamMetaDashMediaItemData(BaseModel):
+
+    backup_url: List[str]
+    bandwidth: int
+    base_url: str
+    codecid: int
+    codecs: str
+    frame_rate: str
+    height: int
+    id_field: int = Field(..., alias='id')
+    md5: str
+    mime_type: str
+    noRexcode: int
+    sar: str
+    segment_base: CheeseStreamDashMediaSegmentBaseData
+    size: int
+    start_with_sap: int
+    width: int
+
+
+class CheeseStreamDashDolbyData(BaseModel):
+
+    # TODO: determine the type of audio's item
+    audio: List[Any]
+    type: str
+
+
+class CheeseStreamDashLossLessAudioData(BaseModel):
+
+    isLosslessAudio: bool
+
+
+class CheeseStreamMetaDashData(BaseModel):
+
+    audio: List[CheeseStreamMetaDashMediaItemData]
+    dolby: CheeseStreamDashDolbyData
+    duration: int
+    losslessAudio: CheeseStreamDashLossLessAudioData
+    min_buffer_time: float
+    video: List[CheeseStreamMetaDashMediaItemData]
+
+
+class BangumiStreamMetaSupportFormatItemData(VideoStreamMetaLiteSupportFormatItemData):
+
+    codecs: Optional[List[str]]
+    description: str
+    display_desc: str
+    format_field: str = Field(..., alias='format')
+    need_login: Optional[bool] = None
+    superscript: str
+
+
+class GetCheeseStreamMetaData(BaseModel):
+
+    accept_description: List[str]
+    accept_format: str
+    accept_quality: List[int]
+    code: int
+    dash: CheeseStreamMetaDashData
+    fnval: int
+    fnver: int
+    format_field: str = Field(..., alias='format')
+    from_field: str = Field(..., alias='from')
+    has_paid: bool
+    is_preview: int
+    message: str
+    no_rexcode: int
+    quality: int
+    result: str
+    seek_param: str
+    seek_type: str
+    status: int
+    support_formats: List[BangumiStreamMetaSupportFormatItemData]
+    timelength: int
+    type_field: str = Field(..., alias='type')
+    video_codecid: int
+    video_project: bool
+
+
+class GetCheeseStreamMetaResponse(BaseResponseModel):
+
+    data: Optional[GetCheeseStreamMetaData] = None
