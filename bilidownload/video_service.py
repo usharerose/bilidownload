@@ -427,7 +427,7 @@ class CheeseVideoMetaParser(AbstractVideoMetaParser):
 class VideoService:
 
     @classmethod
-    def get_video_type(cls, url: str):
+    def _get_video_type(cls, url: str):
         for pattern, video_type in VIDEO_TYPE_MAPPING.items():
             search_result = pattern.search(url)
             if search_result:
@@ -435,85 +435,13 @@ class VideoService:
         return None
 
     @classmethod
-    def get_bvid(cls, url: str) -> Optional[str]:
-        search_result = VIDEO_URL_BV_PATTERN.search(url)
-        if search_result is None:
-            return None
-        return search_result.group(1)
-
-    @classmethod
-    def get_aid(cls, url: str) -> Optional[int]:
-        search_result = VIDEO_URL_AV_PATTERN.search(url)
-        if search_result is None:
-            return None
-        return int(search_result.group(1))
-
-    @classmethod
-    def get_epid(cls, url: str) -> Optional[int]:
-        search_result = VIDEO_URL_EP_PATTERN.search(url)
-        if search_result is None:
-            return None
-        return int(search_result.group(1))
-
-    @classmethod
-    def get_ssid(cls, url: str) -> Optional[int]:
-        search_result = VIDEO_URL_SS_PATTERN.search(url)
-        if search_result is None:
-            return None
-        return int(search_result.group(1))
-
-    @classmethod
-    def get_video_info(cls, url: str, session_data: Optional[str] = None) -> GetVideoInfoResponse:
-        video_type = cls.get_video_type(url)
+    def get_video_meta(
+        cls,
+        url: str,
+        session_data: Optional[str] = None
+    ) -> VideoMetaModel:
+        video_type = cls._get_video_type(url)
         if video_type is None:
             raise
-
-        func = getattr(cls, GET_VIDEO_INFO_FUNC_TEMPLATE.format(video_type=video_type.name.lower()))
-        return func(url, session_data)
-
-    @classmethod
-    def _get_video_video_info(
-        cls, url: str,
-        session_data: Optional[str] = None
-    ) -> GetVideoInfoResponse:
-        params = {}
-        aid = cls.get_aid(url)
-        if aid is None:
-            bvid = cls.get_bvid(url)
-            params.update({'bvid': bvid})
-        else:
-            params.update({'aid': aid})
-        video_info_response_dm = ProxyService.get_video_info_data(session_data=session_data, **params)
-        return video_info_response_dm
-
-    @classmethod
-    def _get_bangumi_video_info(
-        cls,
-        url: str,
-        session_data: Optional[str] = None
-    ) -> GetBangumiDetailResponse:
-        params = {}
-        ssid = cls.get_ssid(url)
-        if ssid is None:
-            epid = cls.get_epid(url)
-            params.update({'epid': epid})
-        else:
-            params.update({'ssid': ssid})
-        bangumi_response_dm = ProxyService.get_bangumi_info_data(session_data=session_data, **params)
-        return bangumi_response_dm
-
-    @classmethod
-    def _get_cheese_video_info(
-        cls,
-        url: str,
-        session_data: Optional[str] = None
-    ) -> GetCheeseDetailResponse:
-        params = {}
-        ssid = cls.get_ssid(url)
-        if ssid is None:
-            epid = cls.get_epid(url)
-            params.update({'epid': epid})
-        else:
-            params.update({'ssid': ssid})
-        cheese_response_dm = ProxyService.get_cheese_info_data(session_data=session_data, **params)
-        return cheese_response_dm
+        parser_kls = REGISTERED_TYPE_VIDEO_META_PARSER[video_type]
+        return parser_kls.get_video_meta(url, session_data)
