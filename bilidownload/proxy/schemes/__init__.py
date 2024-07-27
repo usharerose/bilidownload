@@ -1,3 +1,5 @@
+from .bangumi import GetBangumiDetailResponse
+from .cheese import GetCheeseDetailResponse
 from .finger import GetWebSPIResponse  # NOQA
 from .login import (
     GetWebCaptchaResponse,  # NOQA
@@ -10,3 +12,4 @@ from .user_info import (
     GetUserInfoLoginResponse,  # NOQA
     GetUserInfoNotLoginResponse  # NOQA
 )
+from .video import GetVideoInfoResponse  # NOQA

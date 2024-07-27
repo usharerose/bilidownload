@@ -10,22 +10,27 @@ import requests
 from requests import Response
 
 from .constants import (
-    HEADERS,
+    REQUEST_PGC_INFO_URL,
+    REQUEST_PUGV_INFO_URL,
+    REQUEST_VIDEO_INFO_URL,
     REQUEST_WEB_CAPTCHA_URL,
     REQUEST_WEB_LOGIN_URL,
     REQUEST_WEB_PUBLIC_KEY_URL,
     REQUEST_WEB_SPI_URL,
-    REQUEST_WEB_USER_INFO_URL,
-    TIMEOUT
+    REQUEST_WEB_USER_INFO_URL
 )
 from .schemes import (
+    GetBangumiDetailResponse,
+    GetCheeseDetailResponse,
     GetUserInfoLoginResponse,
     GetUserInfoNotLoginResponse,
     GetWebCaptchaResponse,
     GetWebPublicKeyResponse,
     GetWebSPIResponse,
+    GetVideoInfoResponse,
     WebLoginResponse
 )
+from ..constants import HEADERS, TIMEOUT
 
 
 class ProxyService:
@@ -138,3 +143,113 @@ class ProxyService:
         )
         data = json.loads(response.content.decode('utf-8'))
         return WebLoginResponse.model_validate(data)
+
+    @classmethod
+    def get_video_info(
+        cls,
+        bvid: Optional[str] = None,
+        aid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> Response:
+        """
+        only need one of video's bvid or aid
+        bvid is prior than aid if both exist
+        """
+        if all([id_value is None for id_value in (bvid, aid)]):
+            raise
+
+        session = requests.session()
+        if session_data:
+            session.cookies.set('SESSDATA', session_data)
+        params = {}
+        if bvid is not None:
+            params.update({'bvid': bvid})
+        else:
+            params.update({'aid': aid})
+        response = session.get(REQUEST_VIDEO_INFO_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
+        return response
+
+    @classmethod
+    def get_video_info_data(
+        cls,
+        bvid: Optional[str] = None,
+        aid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> GetVideoInfoResponse:
+        response = cls.get_video_info(bvid, aid, session_data)
+        data = json.loads(response.content.decode('utf-8'))
+        return GetVideoInfoResponse.model_validate(data)
+
+    @classmethod
+    def get_bangumi_info(
+        cls,
+        ssid: Optional[int] = None,
+        epid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> Response:
+        """
+        only need one of bangumi's ssid or epid
+        ssid is prior than epid if both exist
+        """
+        if all([id_value is None for id_value in (ssid, epid)]):
+            raise
+
+        session = requests.session()
+        if session_data:
+            session.cookies.set('SESSDATA', session_data)
+        params = {}
+        if ssid is not None:
+            params.update({'season_id': ssid})
+        else:
+            params.update({'ep_id': epid})
+        response = session.get(REQUEST_PGC_INFO_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
+        return response
+
+    @classmethod
+    def get_bangumi_info_data(
+        cls,
+        ssid: Optional[int] = None,
+        epid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> GetBangumiDetailResponse:
+        response = cls.get_bangumi_info(ssid, epid , session_data)
+        data = json.loads(response.content.decode('utf-8'))
+        return GetBangumiDetailResponse.model_validate(data)
+
+    @classmethod
+    def get_cheese_info(
+        cls,
+        ssid: Optional[int] = None,
+        epid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> Response:
+        """
+        only need one of cheese's ssid or epid
+        ssid is prior than epid if both exist
+
+        and it is different from ssid and epid of bangumi
+        """
+        if all([id_value is None for id_value in (ssid, epid)]):
+            raise
+
+        session = requests.session()
+        if session_data:
+            session.cookies.set('SESSDATA', session_data)
+        params = {}
+        if ssid is not None:
+            params.update({'season_id': ssid})
+        else:
+            params.update({'ep_id': epid})
+        response = session.get(REQUEST_PUGV_INFO_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
+        return response
+
+    @classmethod
+    def get_cheese_info_data(
+        cls,
+        ssid: Optional[int] = None,
+        epid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> GetCheeseDetailResponse:
+        response = cls.get_cheese_info(ssid, epid , session_data)
+        data = json.loads(response.content.decode('utf-8'))
+        return GetCheeseDetailResponse.model_validate(data)
