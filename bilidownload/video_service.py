@@ -292,7 +292,7 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
         dm: GetBangumiDetailResponse
     ) -> List[VideoPageLiteItemData]:
         pages = dm.result.episodes
-        return [
+        result = [
             VideoPageLiteItemData(
                 aid=item.aid,
                 bvid=item.bvid,
@@ -301,6 +301,20 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
                 title=item.long_title
             ) for item in pages
         ]
+
+        section = dm.result.section or []
+        for sec_item in section:
+            for episode in sec_item.episodes:
+                result.append(
+                    VideoPageLiteItemData(
+                        aid=episode.aid,
+                        bvid=episode.bvid,
+                        epid=episode.ep_id,
+                        cid=episode.cid,
+                        title=episode.title
+                    )
+                )
+        return result
 
     @classmethod
     def get_video_meta(cls, url: str, session_data: Optional[str] = None) -> VideoMetaModel:
