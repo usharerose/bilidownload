@@ -1,3 +1,4 @@
+from .bangumi import GetBangumiDetailResponse
 from .finger import GetWebSPIResponse  # NOQA
 from .login import (
     GetWebCaptchaResponse,  # NOQA
