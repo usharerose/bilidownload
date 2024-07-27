@@ -7,6 +7,7 @@ from typing import Optional
 
 from .proxy import (
     GetBangumiDetailResponse,
+    GetCheeseDetailResponse,
     GetVideoInfoResponse,
     ProxyService
 )
@@ -16,6 +17,7 @@ class VideoType(Enum):
 
     VIDEO = 'video'
     BANGUMI = 'bangumi'
+    CHEESE = 'cheese'
 
 
 BVID_LENGTH = 9
@@ -25,15 +27,21 @@ VIDEO_URL_EP_PATTERN_STRING = r'/play/ep(\d+)'
 VIDEO_URL_EP_PATTERN = re.compile(VIDEO_URL_EP_PATTERN_STRING)
 VIDEO_URL_SS_PATTERN_STRING = r'/play/ss(\d+)'
 VIDEO_URL_SS_PATTERN = re.compile(VIDEO_URL_SS_PATTERN_STRING)
-VIDEO_URL_BANGUMI_EP_PATTERN = re.compile(r'/bangumi' + VIDEO_URL_EP_PATTERN_STRING)
-VIDEO_URL_BANGUMI_SS_PATTERN = re.compile(r'/bangumi' + VIDEO_URL_SS_PATTERN_STRING)
+VIDEO_URL_BANGUMI_PREFIX = '/bangumi'
+VIDEO_URL_BANGUMI_EP_PATTERN = re.compile(VIDEO_URL_BANGUMI_PREFIX + VIDEO_URL_EP_PATTERN_STRING)
+VIDEO_URL_BANGUMI_SS_PATTERN = re.compile(VIDEO_URL_BANGUMI_PREFIX + VIDEO_URL_SS_PATTERN_STRING)
+VIDEO_URL_CHEESE_PREFIX = '/cheese'
+VIDEO_URL_CHEESE_EP_PATTERN = re.compile(VIDEO_URL_CHEESE_PREFIX + VIDEO_URL_EP_PATTERN_STRING)
+VIDEO_URL_CHEESE_SS_PATTERN = re.compile(VIDEO_URL_CHEESE_PREFIX + VIDEO_URL_SS_PATTERN_STRING)
 
 
 VIDEO_TYPE_MAPPING = {
     VIDEO_URL_BV_PATTERN: VideoType.VIDEO,
     VIDEO_URL_AV_PATTERN: VideoType.VIDEO,
     VIDEO_URL_BANGUMI_EP_PATTERN: VideoType.BANGUMI,
-    VIDEO_URL_BANGUMI_SS_PATTERN: VideoType.BANGUMI
+    VIDEO_URL_BANGUMI_SS_PATTERN: VideoType.BANGUMI,
+    VIDEO_URL_CHEESE_EP_PATTERN: VideoType.CHEESE,
+    VIDEO_URL_CHEESE_SS_PATTERN: VideoType.CHEESE
 }
 
 
@@ -117,3 +125,19 @@ class VideoService:
             params.update({'ssid': ssid})
         bangumi_response_dm = ProxyService.get_bangumi_info_data(session_data=session_data, **params)
         return bangumi_response_dm
+
+    @classmethod
+    def _get_cheese_video_info(
+        cls,
+        url: str,
+        session_data: Optional[str] = None
+    ) -> GetCheeseDetailResponse:
+        params = {}
+        ssid = cls.get_ssid(url)
+        if ssid is None:
+            epid = cls.get_epid(url)
+            params.update({'epid': epid})
+        else:
+            params.update({'ssid': ssid})
+        cheese_response_dm = ProxyService.get_cheese_info_data(session_data=session_data, **params)
+        return cheese_response_dm
