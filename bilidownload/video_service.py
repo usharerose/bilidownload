@@ -10,6 +10,7 @@ from pydantic import BaseModel
 
 from .proxy import (
     GetBangumiDetailResponse,
+    GetBangumiStreamMetaResponse,
     GetCheeseDetailResponse,
     GetVideoInfoResponse,
     GetVideoStreamMetaResponse,
@@ -68,6 +69,7 @@ class VideoPageLiteItemData(BaseModel):
 
     aid: Optional[int] = None
     bvid: Optional[str] = None
+    epid: Optional[int] = None
     cid: int                    # cid of this page
     title: str                  # Title of this page
 
@@ -207,6 +209,113 @@ class CommonVideoMetaParser(AbstractVideoMetaParser):
             work_url=url,
             work_staff=cls._parse_work_staff(video_info),
             work_title=video_info.data.title,
+            work_formats=cls._parse_work_formats(video_stream_meta),
+            work_pages=cls._parse_work_pages(video_info)
+        )
+
+
+@register_parser(VideoType.BANGUMI)
+class BangumiVideoMetaParser(AbstractVideoMetaParser):
+
+    @classmethod
+    def _get_epid(cls, url: str) -> Optional[int]:
+        search_result = VIDEO_URL_EP_PATTERN.search(url)
+        if search_result is None:
+            return None
+        return int(search_result.group(1))
+
+    @classmethod
+    def _get_ssid(cls, url: str) -> Optional[int]:
+        search_result = VIDEO_URL_SS_PATTERN.search(url)
+        if search_result is None:
+            return None
+        return int(search_result.group(1))
+
+    @classmethod
+    def _get_video_info(
+        cls,
+        url: str,
+        session_data: Optional[str] = None
+    ) -> GetBangumiDetailResponse:
+        params = {}
+        ssid = cls._get_ssid(url)
+        if ssid is None:
+            epid = cls._get_epid(url)
+            params.update({'epid': epid})
+        else:
+            params.update({'ssid': ssid})
+        res_dm = ProxyService.get_bangumi_info_data(session_data=session_data, **params)
+        return res_dm
+
+    @classmethod
+    def _get_video_stream_meta(
+        cls,
+        epid: int,
+        session_data: Optional[str] = None
+    ) -> GetBangumiStreamMetaResponse:
+        params = {'epid': epid}
+        res_dm = ProxyService.get_bangumi_stream_meta_data(session_data=session_data, **params)
+        return res_dm
+
+    @classmethod
+    def _parse_work_staff(
+        cls,
+        dm: GetBangumiDetailResponse
+    ) -> List[VideoMetaStaffItem]:
+        work_staff = [dm.result.up_info]
+        return [
+            VideoMetaStaffItem(
+                avatar_url=item.avatar,
+                mid=item.mid,
+                name=item.uname,
+                title=DEFAULT_STAFF_TITLE
+            ) for item in work_staff
+        ]
+
+    @classmethod
+    def _parse_work_formats(
+        cls,
+        dm: GetBangumiStreamMetaResponse
+    ) -> List[VideoStreamMetaLiteSupportFormatItemData]:
+        work_formats = dm.result.support_formats
+        return [
+            VideoStreamMetaLiteSupportFormatItemData(
+                quality=item.quality,
+                new_description=item.new_description
+            ) for item in work_formats
+        ]
+
+    @classmethod
+    def _parse_work_pages(
+        cls,
+        dm: GetBangumiDetailResponse
+    ) -> List[VideoPageLiteItemData]:
+        pages = dm.result.episodes
+        return [
+            VideoPageLiteItemData(
+                aid=item.aid,
+                bvid=item.bvid,
+                epid=item.id_field,
+                cid=item.cid,
+                title=item.long_title
+            ) for item in pages
+        ]
+
+    @classmethod
+    def get_video_meta(cls, url: str, session_data: Optional[str] = None) -> VideoMetaModel:
+        video_info = cls._get_video_info(url, session_data)
+        sample_episode, *_ = video_info.result.episodes
+
+        video_stream_meta = cls._get_video_stream_meta(
+            sample_episode.id_field,
+            session_data
+        )
+        return VideoMetaModel(
+            work_cover_url=video_info.result.cover,
+            work_description=video_info.result.evaluate,
+            work_url=url,
+            work_staff=cls._parse_work_staff(video_info),
+            work_title=video_info.result.title,
             work_formats=cls._parse_work_formats(video_stream_meta),
             work_pages=cls._parse_work_pages(video_info)
         )
