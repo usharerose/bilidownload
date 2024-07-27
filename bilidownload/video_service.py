@@ -12,6 +12,7 @@ from .proxy import (
     GetBangumiDetailResponse,
     GetBangumiStreamMetaResponse,
     GetCheeseDetailResponse,
+    GetCheeseStreamMetaResponse,
     GetVideoInfoResponse,
     GetVideoStreamMetaResponse,
     ProxyService,
@@ -316,6 +317,108 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
             work_url=url,
             work_staff=cls._parse_work_staff(video_info),
             work_title=video_info.result.title,
+            work_formats=cls._parse_work_formats(video_stream_meta),
+            work_pages=cls._parse_work_pages(video_info)
+        )
+
+
+@register_parser(VideoType.CHEESE)
+class CheeseVideoMetaParser(AbstractVideoMetaParser):
+
+    @classmethod
+    def _get_video_info(
+        cls,
+        url: str,
+        session_data: Optional[str] = None
+    ) -> GetCheeseDetailResponse:
+        params = {}
+        ssid = cls._get_ssid(url)
+        if ssid is None:
+            epid = cls._get_epid(url)
+            params.update({'epid': epid})
+        else:
+            params.update({'ssid': ssid})
+        res_dm = ProxyService.get_cheese_info_data(session_data=session_data, **params)
+        return res_dm
+
+    @classmethod
+    def _get_video_stream_meta(
+        cls,
+        aid: int,
+        epid: int,
+        cid: int,
+        session_data: Optional[str] = None
+    ) -> GetCheeseStreamMetaResponse:
+        params = {
+            'aid': aid,
+            'epid': epid,
+            'cid': cid
+        }
+        res_dm = ProxyService.get_cheese_stream_meta_data(session_data=session_data, **params)
+        return res_dm
+
+    @classmethod
+    def _parse_work_staff(
+        cls,
+        dm: GetCheeseDetailResponse
+    ) -> List[VideoMetaStaffItem]:
+        work_staff = [dm.data.up_info]
+        return [
+            VideoMetaStaffItem(
+                avatar_url=item.avatar,
+                mid=item.mid,
+                name=item.uname,
+                title=DEFAULT_STAFF_TITLE
+            ) for item in work_staff
+        ]
+
+    @classmethod
+    def _parse_work_formats(
+        cls,
+        dm: GetCheeseStreamMetaResponse
+    ) -> List[VideoStreamMetaLiteSupportFormatItemData]:
+        work_formats = dm.data.support_formats
+        return [
+            VideoStreamMetaLiteSupportFormatItemData(
+                quality=item.quality,
+                new_description=item.new_description
+            ) for item in work_formats
+        ]
+
+    @classmethod
+    def _parse_work_pages(
+        cls,
+        dm: GetCheeseDetailResponse
+    ) -> List[VideoPageLiteItemData]:
+        pages = dm.data.episodes
+        return [
+            VideoPageLiteItemData(
+                aid=item.aid,
+                epid=item.id_field,
+                cid=item.cid,
+                title=item.title
+            ) for item in pages
+        ]
+
+    @classmethod
+    def get_video_meta(
+        cls,
+        url: str,
+        session_data: Optional[str] = None
+    ) -> VideoMetaModel:
+        video_info = cls._get_video_info(url, session_data)
+        sample_episode, *_ = video_info.data.episodes
+        video_stream_meta = cls._get_video_stream_meta(
+            sample_episode.aid,
+            sample_episode.id_field,
+            sample_episode.cid
+        )
+        return VideoMetaModel(
+            work_cover_url=video_info.data.cover,
+            work_description=video_info.data.subtitle,
+            work_url=url,
+            work_staff=cls._parse_work_staff(video_info),
+            work_title=video_info.data.title,
             work_formats=cls._parse_work_formats(video_stream_meta),
             work_pages=cls._parse_work_pages(video_info)
         )
