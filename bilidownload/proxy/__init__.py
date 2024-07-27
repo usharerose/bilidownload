@@ -6,6 +6,7 @@ from .schemes import (
     GetBangumiDetailResponse,
     GetCheeseDetailResponse,
     GetVideoInfoResponse,
+    GetVideoStreamMetaResponse,
     GetUserInfoNotLoginData,
     GetUserInfoLoginData,
     GetUserInfoLoginResponse,
@@ -13,5 +14,6 @@ from .schemes import (
     GetWebCaptchaResponse,
     GetWebPublicKeyResponse,
     GetWebSPIResponse,
+    VideoStreamMetaLiteSupportFormatItemData,
     WebLoginResponse
 )

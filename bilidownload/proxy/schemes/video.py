@@ -12,7 +12,11 @@ from .base import (
 )
 
 
-__all__ = ['GetVideoInfoResponse']
+__all__ = [
+    'GetVideoInfoResponse',
+    'GetVideoStreamMetaResponse',
+    'VideoStreamMetaLiteSupportFormatItemData'
+]
 
 
 class VideoDescriptionV2ItemData(BaseModel):
@@ -224,3 +228,55 @@ class GetVideoInfoResponse(BaseResponseModel):
     62004：video in review
     """
     data: Optional[GetVideoInfoData] = None
+
+
+class VideoStreamMetaDURLItemData(BaseModel):
+
+    order: int
+    length: int
+    size: int
+    ahead: str
+    vhead: str
+    url: str
+    backup_url: List[str]
+
+
+class VideoStreamMetaLiteSupportFormatItemData(BaseModel):
+
+    quality: int  # qn
+    new_description: str
+
+
+class VideoStreamMetaSupportFormatItemData(VideoStreamMetaLiteSupportFormatItemData):
+
+    format_field: str = Field(..., alias='format')
+    display_desc: str
+    superscript: str
+    codecs: Optional[List[str]]
+
+
+class GetVideoStreamMetaData(BaseModel):
+
+    from_field: str = Field(..., alias='from')
+    result: str
+    message: str
+    quality: int
+    format_field: str = Field(..., alias='format')
+    timelength: int  # millisecond
+    accept_format: str
+    accept_description: List[str]
+    accept_quality: List[int]
+    video_codecid: int
+    seek_param: str
+    seek_type: str
+    durl: List[VideoStreamMetaDURLItemData]
+    support_formats: List[VideoStreamMetaSupportFormatItemData]
+    high_format: None
+    last_play_time: int
+    last_play_cid: int
+    view_info: None
+
+
+class GetVideoStreamMetaResponse(BaseResponseModel):
+
+    data: Optional[GetVideoStreamMetaData] = None

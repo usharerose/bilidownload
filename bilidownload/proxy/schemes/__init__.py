@@ -12,4 +12,8 @@ from .user_info import (
     GetUserInfoLoginResponse,  # NOQA
     GetUserInfoNotLoginResponse  # NOQA
 )
-from .video import GetVideoInfoResponse  # NOQA
+from .video import (
+    GetVideoInfoResponse,  # NOQA
+    GetVideoStreamMetaResponse,  # NOQA
+    VideoStreamMetaLiteSupportFormatItemData
+)

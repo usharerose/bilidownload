@@ -13,6 +13,7 @@ from .constants import (
     REQUEST_PGC_INFO_URL,
     REQUEST_PUGV_INFO_URL,
     REQUEST_VIDEO_INFO_URL,
+    REQUEST_VIDEO_STREAM_META_URL,
     REQUEST_WEB_CAPTCHA_URL,
     REQUEST_WEB_LOGIN_URL,
     REQUEST_WEB_PUBLIC_KEY_URL,
@@ -28,6 +29,7 @@ from .schemes import (
     GetWebPublicKeyResponse,
     GetWebSPIResponse,
     GetVideoInfoResponse,
+    GetVideoStreamMetaResponse,
     WebLoginResponse
 )
 from ..constants import HEADERS, TIMEOUT
@@ -179,6 +181,45 @@ class ProxyService:
         response = cls.get_video_info(bvid, aid, session_data)
         data = json.loads(response.content.decode('utf-8'))
         return GetVideoInfoResponse.model_validate(data)
+
+    @classmethod
+    def get_video_stream_meta(
+        cls,
+        cid: int,
+        bvid: Optional[str] = None,
+        aid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> Response:
+        """
+        only need one of video's bvid or aid
+        bvid is prior than aid if both exist
+        """
+        if all([id_value is None for id_value in (bvid, aid)]):
+            raise
+
+        session = requests.session()
+        if session_data:
+            session.cookies.set('SESSDATA', session_data)
+        params = {}
+        if bvid is not None:
+            params.update({'bvid': bvid})
+        else:
+            params.update({'avid': aid})
+        params.update({'cid': cid})
+        response = session.get(REQUEST_VIDEO_STREAM_META_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
+        return response
+
+    @classmethod
+    def get_video_stream_meta_data(
+        cls,
+        cid: int,
+        bvid: Optional[str] = None,
+        aid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> GetVideoStreamMetaResponse:
+        response = cls.get_video_stream_meta(cid, bvid, aid, session_data)
+        data = json.loads(response.content.decode('utf-8'))
+        return GetVideoStreamMetaResponse.model_validate(data)
 
     @classmethod
     def get_bangumi_info(
