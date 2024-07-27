@@ -6,6 +6,7 @@ Proxy requests constants
 REQUEST_PGC_INFO_URL = 'https://api.bilibili.com/pgc/view/web/season'
 REQUEST_PGC_STREAM_META_URL = 'https://api.bilibili.com/pgc/player/web/playurl'
 REQUEST_PUGV_INFO_URL = 'https://api.bilibili.com/pugv/view/web/season'
+REQUEST_PUGV_STREAM_META_URL = 'https://api.bilibili.com/pugv/player/web/playurl'
 REQUEST_VIDEO_INFO_URL = 'https://api.bilibili.com/x/web-interface/view'
 REQUEST_VIDEO_STREAM_META_URL = 'https://api.bilibili.com/x/player/wbi/playurl'
 REQUEST_WEB_CAPTCHA_URL = \

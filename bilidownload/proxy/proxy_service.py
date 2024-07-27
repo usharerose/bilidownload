@@ -2,6 +2,7 @@
 Bilibili official API proxy
 """
 import copy
+from enum import Enum
 import json
 from typing import Optional, Union
 from urllib.parse import urlencode
@@ -13,6 +14,7 @@ from .constants import (
     REQUEST_PGC_INFO_URL,
     REQUEST_PGC_STREAM_META_URL,
     REQUEST_PUGV_INFO_URL,
+    REQUEST_PUGV_STREAM_META_URL,
     REQUEST_VIDEO_INFO_URL,
     REQUEST_VIDEO_STREAM_META_URL,
     REQUEST_WEB_CAPTCHA_URL,
@@ -25,6 +27,7 @@ from .schemes import (
     GetBangumiDetailResponse,
     GetBangumiStreamMetaResponse,
     GetCheeseDetailResponse,
+    GetCheeseStreamMetaResponse,
     GetUserInfoLoginResponse,
     GetUserInfoNotLoginResponse,
     GetWebCaptchaResponse,
@@ -35,6 +38,9 @@ from .schemes import (
     WebLoginResponse
 )
 from ..constants import HEADERS, TIMEOUT
+
+
+VIDEO_FORMAT_DASH = 16
 
 
 class ProxyService:
@@ -319,3 +325,35 @@ class ProxyService:
         response = cls.get_cheese_info(ssid, epid , session_data)
         data = json.loads(response.content.decode('utf-8'))
         return GetCheeseDetailResponse.model_validate(data)
+
+    @classmethod
+    def get_cheese_stream_meta(
+        cls,
+        aid: int,
+        epid: int,
+        cid: int,
+        session_data: Optional[str] = None
+    ) -> Response:
+        session = requests.session()
+        if session_data:
+            session.cookies.set('SESSDATA', session_data)
+        params = {
+            'avid': aid,
+            'ep_id': epid,
+            'cid': cid,
+            'fnval': VIDEO_FORMAT_DASH
+        }
+        response = session.get(REQUEST_PUGV_STREAM_META_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
+        return response
+
+    @classmethod
+    def get_cheese_stream_meta_data(
+        cls,
+        aid: int,
+        epid: int,
+        cid: int,
+        session_data: Optional[str] = None
+    ) -> GetCheeseStreamMetaResponse:
+        response = cls.get_cheese_stream_meta(aid, epid, cid, session_data)
+        data = json.loads(response.content.decode('utf-8'))
+        return GetCheeseStreamMetaResponse.model_validate(data)
