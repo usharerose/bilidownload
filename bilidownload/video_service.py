@@ -94,6 +94,34 @@ class AbstractVideoMetaParser(ABC):
     def get_video_meta(cls, url: str, session_data: Optional[str] = None) -> VideoMetaModel:
         pass
 
+    @classmethod
+    def _get_bvid(cls, url: str) -> Optional[str]:
+        search_result = VIDEO_URL_BV_PATTERN.search(url)
+        if search_result is None:
+            return None
+        return search_result.group(1)
+
+    @classmethod
+    def _get_aid(cls, url: str) -> Optional[int]:
+        search_result = VIDEO_URL_AV_PATTERN.search(url)
+        if search_result is None:
+            return None
+        return int(search_result.group(1))
+
+    @classmethod
+    def _get_epid(cls, url: str) -> Optional[int]:
+        search_result = VIDEO_URL_EP_PATTERN.search(url)
+        if search_result is None:
+            return None
+        return int(search_result.group(1))
+
+    @classmethod
+    def _get_ssid(cls, url: str) -> Optional[int]:
+        search_result = VIDEO_URL_SS_PATTERN.search(url)
+        if search_result is None:
+            return None
+        return int(search_result.group(1))
+
 
 def register_parser(video_type: VideoType):
 
@@ -108,20 +136,6 @@ def register_parser(video_type: VideoType):
 
 @register_parser(VideoType.VIDEO)
 class CommonVideoMetaParser(AbstractVideoMetaParser):
-
-    @classmethod
-    def _get_bvid(cls, url: str) -> Optional[str]:
-        search_result = VIDEO_URL_BV_PATTERN.search(url)
-        if search_result is None:
-            return None
-        return search_result.group(1)
-
-    @classmethod
-    def _get_aid(cls, url: str) -> Optional[int]:
-        search_result = VIDEO_URL_AV_PATTERN.search(url)
-        if search_result is None:
-            return None
-        return int(search_result.group(1))
 
     @classmethod
     def _parse_work_staff(cls, dm: GetVideoInfoResponse) -> List[VideoMetaStaffItem]:
@@ -216,20 +230,6 @@ class CommonVideoMetaParser(AbstractVideoMetaParser):
 
 @register_parser(VideoType.BANGUMI)
 class BangumiVideoMetaParser(AbstractVideoMetaParser):
-
-    @classmethod
-    def _get_epid(cls, url: str) -> Optional[int]:
-        search_result = VIDEO_URL_EP_PATTERN.search(url)
-        if search_result is None:
-            return None
-        return int(search_result.group(1))
-
-    @classmethod
-    def _get_ssid(cls, url: str) -> Optional[int]:
-        search_result = VIDEO_URL_SS_PATTERN.search(url)
-        if search_result is None:
-            return None
-        return int(search_result.group(1))
 
     @classmethod
     def _get_video_info(
