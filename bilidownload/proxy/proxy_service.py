@@ -11,6 +11,7 @@ from requests import Response
 
 from .constants import (
     REQUEST_PGC_INFO_URL,
+    REQUEST_PUGV_INFO_URL,
     REQUEST_VIDEO_INFO_URL,
     REQUEST_WEB_CAPTCHA_URL,
     REQUEST_WEB_LOGIN_URL,
@@ -20,6 +21,7 @@ from .constants import (
 )
 from .schemes import (
     GetBangumiDetailResponse,
+    GetCheeseDetailResponse,
     GetUserInfoLoginResponse,
     GetUserInfoNotLoginResponse,
     GetWebCaptchaResponse,
@@ -213,3 +215,41 @@ class ProxyService:
         response = cls.get_bangumi_info(ssid, epid , session_data)
         data = json.loads(response.content.decode('utf-8'))
         return GetBangumiDetailResponse.model_validate(data)
+
+    @classmethod
+    def get_cheese_info(
+        cls,
+        ssid: Optional[int] = None,
+        epid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> Response:
+        """
+        only need one of cheese's ssid or epid
+        ssid is prior than epid if both exist
+
+        and it is different from ssid and epid of bangumi
+        """
+        if all([id_value is None for id_value in (ssid, epid)]):
+            raise
+
+        session = requests.session()
+        if session_data:
+            session.cookies.set('SESSDATA', session_data)
+        params = {}
+        if ssid is not None:
+            params.update({'season_id': ssid})
+        else:
+            params.update({'ep_id': epid})
+        response = session.get(REQUEST_PUGV_INFO_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
+        return response
+
+    @classmethod
+    def get_cheese_info_data(
+        cls,
+        ssid: Optional[int] = None,
+        epid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> GetCheeseDetailResponse:
+        response = cls.get_cheese_info(ssid, epid , session_data)
+        data = json.loads(response.content.decode('utf-8'))
+        return GetCheeseDetailResponse.model_validate(data)
