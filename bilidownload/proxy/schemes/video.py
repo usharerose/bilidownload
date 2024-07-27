@@ -5,7 +5,11 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from .base import BaseResponseWithTTLModel, UserOfficialInfoData
+from .base import (
+    BaseResponseModel,
+    UserOfficialInfoData,
+    VideoDimensionData
+)
 
 
 __all__ = ['GetVideoInfoResponse']
@@ -62,13 +66,6 @@ class VideoStatusData(BaseModel):
     dislike: int     # Count of dislike
     evaluation: str  # Video evaluation
     vt: int = 0
-
-
-class VideoDimensionData(BaseModel):
-
-    width: int   # Video width of current page
-    height: int  # Video height of current page
-    rotate: int  # 1 when exchange width and height, 0 not
 
 
 class VideoPagesItemData(BaseModel):
@@ -215,7 +212,7 @@ class GetVideoInfoData(BaseModel):
     is_story_play: int
 
 
-class GetVideoInfoResponse(BaseResponseWithTTLModel):
+class GetVideoInfoResponse(BaseResponseModel):
     """
     On 'code' field,
 

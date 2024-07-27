@@ -5,7 +5,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from .base import BaseResponseModel, BaseResponseWithTTLModel
+from .base import BaseResponseModel, BaseResponseModel
 
 
 __all__ = [
@@ -36,7 +36,7 @@ class GetWebCaptchaData(BaseModel):
     tencent: GetWebCaptchaTencentData
 
 
-class GetWebCaptchaResponse(BaseResponseWithTTLModel):
+class GetWebCaptchaResponse(BaseResponseModel):
     """
     response from 'https://passport.bilibili.com/x/passport-login/captcha?source=main_web'
     which is for Geetest captcha metadata
@@ -53,7 +53,7 @@ class GetWebPublicKeyData(BaseModel):
     key: str
 
 
-class GetWebPublicKeyResponse(BaseResponseWithTTLModel):
+class GetWebPublicKeyResponse(BaseResponseModel):
     """
     response from 'https://passport.bilibili.com/x/passport-login/web/key'
     which is for RSA encrypt on password

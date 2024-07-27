@@ -1,6 +1,8 @@
 """
 Base models of Bilibili API requests
 """
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -8,11 +10,7 @@ class BaseResponseModel(BaseModel):
 
     code: int = 0
     message: str = '0'
-
-
-class BaseResponseWithTTLModel(BaseResponseModel):
-
-    ttl: int = 1
+    ttl: Optional[int] = None
 
 
 class UserOfficialVerifyData(BaseModel):
@@ -34,3 +32,17 @@ class UserOfficialInfoData(UserOfficialVerifyData):
     # 9: personal verified, Social KOL
     role: int
     title: str  # Title of role
+
+
+class VideoDimensionData(BaseModel):
+
+    width: int   # Video width of current page
+    height: int  # Video height of current page
+    rotate: int  # 1 when exchange width and height, 0 not
+
+
+class PendantData(BaseModel):
+
+    pid: int = 0                   # Identifier of pendant
+    name: str = ''                 # Name of pendant
+    image: str = ''                # URL of pendant image

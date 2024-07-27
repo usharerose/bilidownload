@@ -6,7 +6,8 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from .base import (
-    BaseResponseWithTTLModel,
+    BaseResponseModel,
+    PendantData,
     UserOfficialInfoData,
     UserOfficialVerifyData
 )
@@ -46,11 +47,8 @@ class UserNameRenderInfoData(BaseModel):
     render_scheme: str           # "Default" or "Colorful"
 
 
-class UserPendantData(BaseModel):
+class UserPendantData(PendantData):
 
-    pid: int = 0                   # Identifier of pendant
-    name: str = ''                 # Name of pendant
-    image: str = ''                # URL of pendant image
     expire: int = 0                # Unix timestamp when pendant expired
     image_enhance: str = ''
     image_enhance_frame: str = ''
@@ -146,11 +144,11 @@ class GetUserInfoLoginData(GetUserInfoNotLoginData):
     wallet: UserWalletInfoData
 
 
-class GetUserInfoLoginResponse(BaseResponseWithTTLModel):
+class GetUserInfoLoginResponse(BaseResponseModel):
 
     data: GetUserInfoLoginData
 
 
-class GetUserInfoNotLoginResponse(BaseResponseWithTTLModel):
+class GetUserInfoNotLoginResponse(BaseResponseModel):
 
     data: GetUserInfoNotLoginData
