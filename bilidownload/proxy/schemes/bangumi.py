@@ -365,22 +365,11 @@ class BangumiStreamMetaClipInfoListItemData(BaseModel):
     toastText: str
 
 
-class GetVideoStreamMetaData(BaseModel):
+class GetBangumiStreamMetaResult(BaseModel):
 
     accept_description: List[str]
     accept_format: str
     accept_quality: List[int]
-    from_field: str = Field(..., alias='from')
-    format_field: str = Field(..., alias='format')
-    message: str
-    quality: int
-    timelength: int  # millisecond
-    seek_param: str
-    seek_type: str
-    video_codecid: int
-
-
-class GetBangumiStreamMetaResult(GetVideoStreamMetaData):
     bp: int
     clip_info_list: List[BangumiStreamMetaClipInfoListItemData]
     code: int
@@ -389,15 +378,23 @@ class GetBangumiStreamMetaResult(GetVideoStreamMetaData):
     durls: List[Any]
     fnval: int
     fnver: int
+    format_field: str = Field(..., alias='format')
+    from_field: str = Field(..., alias='from')
     has_paid: bool
     is_drm: bool
     is_preview: int
+    message: str
     no_rexcode: int
+    quality: int
     record_info: BangumiStreamMetaRecordInfoData
     result: str
     status: int
     support_formats: List[BangumiStreamMetaSupportFormatItemData]
+    timelength: int  # millisecond
     type_field: str = Field(..., alias='type')
+    seek_param: str
+    seek_type: str
+    video_codecid: int
     video_project: bool
 
 
