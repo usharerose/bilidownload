@@ -1,4 +1,5 @@
-from .bangumi import GetBangumiDetailResponse
+from .bangumi import GetBangumiDetailResponse, GetBangumiStreamMetaResponse
+from .base import VideoStreamMetaLiteSupportFormatItemData
 from .cheese import GetCheeseDetailResponse
 from .finger import GetWebSPIResponse  # NOQA
 from .login import (
@@ -14,6 +15,5 @@ from .user_info import (
 )
 from .video import (
     GetVideoInfoResponse,  # NOQA
-    GetVideoStreamMetaResponse,  # NOQA
-    VideoStreamMetaLiteSupportFormatItemData
+    GetVideoStreamMetaResponse  # NOQA
 )

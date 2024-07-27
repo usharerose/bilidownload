@@ -8,14 +8,14 @@ from pydantic import BaseModel, Field
 from .base import (
     BaseResponseModel,
     UserOfficialInfoData,
-    VideoDimensionData
+    VideoDimensionData,
+    VideoStreamMetaLiteSupportFormatItemData
 )
 
 
 __all__ = [
     'GetVideoInfoResponse',
-    'GetVideoStreamMetaResponse',
-    'VideoStreamMetaLiteSupportFormatItemData'
+    'GetVideoStreamMetaResponse'
 ]
 
 
@@ -239,12 +239,6 @@ class VideoStreamMetaDURLItemData(BaseModel):
     vhead: str
     url: str
     backup_url: List[str]
-
-
-class VideoStreamMetaLiteSupportFormatItemData(BaseModel):
-
-    quality: int  # qn
-    new_description: str
 
 
 class VideoStreamMetaSupportFormatItemData(VideoStreamMetaLiteSupportFormatItemData):
