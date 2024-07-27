@@ -11,6 +11,7 @@ from requests import Response
 
 from .constants import (
     REQUEST_PGC_INFO_URL,
+    REQUEST_PGC_STREAM_META_URL,
     REQUEST_PUGV_INFO_URL,
     REQUEST_VIDEO_INFO_URL,
     REQUEST_VIDEO_STREAM_META_URL,
@@ -22,6 +23,7 @@ from .constants import (
 )
 from .schemes import (
     GetBangumiDetailResponse,
+    GetBangumiStreamMetaResponse,
     GetCheeseDetailResponse,
     GetUserInfoLoginResponse,
     GetUserInfoNotLoginResponse,
@@ -256,6 +258,29 @@ class ProxyService:
         response = cls.get_bangumi_info(ssid, epid , session_data)
         data = json.loads(response.content.decode('utf-8'))
         return GetBangumiDetailResponse.model_validate(data)
+
+    @classmethod
+    def get_bangumi_stream_meta(
+        cls,
+        epid: int,
+        session_data: Optional[str] = None
+    ) -> Response:
+        session = requests.session()
+        if session_data:
+            session.cookies.set('SESSDATA', session_data)
+        params = {'ep_id': epid}
+        response = session.get(REQUEST_PGC_STREAM_META_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
+        return response
+
+    @classmethod
+    def get_bangumi_stream_meta_data(
+        cls,
+        epid: int,
+        session_data: Optional[str] = None
+    ) -> GetBangumiStreamMetaResponse:
+        response = cls.get_bangumi_stream_meta(epid, session_data)
+        data = json.loads(response.content.decode('utf-8'))
+        return GetBangumiStreamMetaResponse.model_validate(data)
 
     @classmethod
     def get_cheese_info(
