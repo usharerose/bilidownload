@@ -2,6 +2,7 @@
 Bilibili official API proxy
 """
 import copy
+from enum import Enum
 import json
 from typing import Optional, Union
 from urllib.parse import urlencode
@@ -11,8 +12,11 @@ from requests import Response
 
 from .constants import (
     REQUEST_PGC_INFO_URL,
+    REQUEST_PGC_STREAM_META_URL,
     REQUEST_PUGV_INFO_URL,
+    REQUEST_PUGV_STREAM_META_URL,
     REQUEST_VIDEO_INFO_URL,
+    REQUEST_VIDEO_STREAM_META_URL,
     REQUEST_WEB_CAPTCHA_URL,
     REQUEST_WEB_LOGIN_URL,
     REQUEST_WEB_PUBLIC_KEY_URL,
@@ -21,16 +25,22 @@ from .constants import (
 )
 from .schemes import (
     GetBangumiDetailResponse,
+    GetBangumiStreamMetaResponse,
     GetCheeseDetailResponse,
+    GetCheeseStreamMetaResponse,
     GetUserInfoLoginResponse,
     GetUserInfoNotLoginResponse,
     GetWebCaptchaResponse,
     GetWebPublicKeyResponse,
     GetWebSPIResponse,
     GetVideoInfoResponse,
+    GetVideoStreamMetaResponse,
     WebLoginResponse
 )
 from ..constants import HEADERS, TIMEOUT
+
+
+VIDEO_FORMAT_DASH = 16
 
 
 class ProxyService:
@@ -181,6 +191,45 @@ class ProxyService:
         return GetVideoInfoResponse.model_validate(data)
 
     @classmethod
+    def get_video_stream_meta(
+        cls,
+        cid: int,
+        bvid: Optional[str] = None,
+        aid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> Response:
+        """
+        only need one of video's bvid or aid
+        bvid is prior than aid if both exist
+        """
+        if all([id_value is None for id_value in (bvid, aid)]):
+            raise
+
+        session = requests.session()
+        if session_data:
+            session.cookies.set('SESSDATA', session_data)
+        params = {}
+        if bvid is not None:
+            params.update({'bvid': bvid})
+        else:
+            params.update({'avid': aid})
+        params.update({'cid': cid})
+        response = session.get(REQUEST_VIDEO_STREAM_META_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
+        return response
+
+    @classmethod
+    def get_video_stream_meta_data(
+        cls,
+        cid: int,
+        bvid: Optional[str] = None,
+        aid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> GetVideoStreamMetaResponse:
+        response = cls.get_video_stream_meta(cid, bvid, aid, session_data)
+        data = json.loads(response.content.decode('utf-8'))
+        return GetVideoStreamMetaResponse.model_validate(data)
+
+    @classmethod
     def get_bangumi_info(
         cls,
         ssid: Optional[int] = None,
@@ -215,6 +264,29 @@ class ProxyService:
         response = cls.get_bangumi_info(ssid, epid , session_data)
         data = json.loads(response.content.decode('utf-8'))
         return GetBangumiDetailResponse.model_validate(data)
+
+    @classmethod
+    def get_bangumi_stream_meta(
+        cls,
+        epid: int,
+        session_data: Optional[str] = None
+    ) -> Response:
+        session = requests.session()
+        if session_data:
+            session.cookies.set('SESSDATA', session_data)
+        params = {'ep_id': epid}
+        response = session.get(REQUEST_PGC_STREAM_META_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
+        return response
+
+    @classmethod
+    def get_bangumi_stream_meta_data(
+        cls,
+        epid: int,
+        session_data: Optional[str] = None
+    ) -> GetBangumiStreamMetaResponse:
+        response = cls.get_bangumi_stream_meta(epid, session_data)
+        data = json.loads(response.content.decode('utf-8'))
+        return GetBangumiStreamMetaResponse.model_validate(data)
 
     @classmethod
     def get_cheese_info(
@@ -253,3 +325,35 @@ class ProxyService:
         response = cls.get_cheese_info(ssid, epid , session_data)
         data = json.loads(response.content.decode('utf-8'))
         return GetCheeseDetailResponse.model_validate(data)
+
+    @classmethod
+    def get_cheese_stream_meta(
+        cls,
+        aid: int,
+        epid: int,
+        cid: int,
+        session_data: Optional[str] = None
+    ) -> Response:
+        session = requests.session()
+        if session_data:
+            session.cookies.set('SESSDATA', session_data)
+        params = {
+            'avid': aid,
+            'ep_id': epid,
+            'cid': cid,
+            'fnval': VIDEO_FORMAT_DASH
+        }
+        response = session.get(REQUEST_PUGV_STREAM_META_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
+        return response
+
+    @classmethod
+    def get_cheese_stream_meta_data(
+        cls,
+        aid: int,
+        epid: int,
+        cid: int,
+        session_data: Optional[str] = None
+    ) -> GetCheeseStreamMetaResponse:
+        response = cls.get_cheese_stream_meta(aid, epid, cid, session_data)
+        data = json.loads(response.content.decode('utf-8'))
+        return GetCheeseStreamMetaResponse.model_validate(data)

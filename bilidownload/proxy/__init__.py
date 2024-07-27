@@ -4,8 +4,11 @@ Bilibili API proxies module
 from .proxy_service import ProxyService
 from .schemes import (
     GetBangumiDetailResponse,
+    GetBangumiStreamMetaResponse,
     GetCheeseDetailResponse,
+    GetCheeseStreamMetaResponse,
     GetVideoInfoResponse,
+    GetVideoStreamMetaResponse,
     GetUserInfoNotLoginData,
     GetUserInfoLoginData,
     GetUserInfoLoginResponse,
@@ -13,5 +16,6 @@ from .schemes import (
     GetWebCaptchaResponse,
     GetWebPublicKeyResponse,
     GetWebSPIResponse,
+    VideoStreamMetaLiteSupportFormatItemData,
     WebLoginResponse
 )

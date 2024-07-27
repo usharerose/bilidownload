@@ -1,14 +1,19 @@
 """
 Response models of bangumi video related Bilibili API requests
 """
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import BaseModel, Field
 
-from .base import BaseResponseModel, PendantData, VideoDimensionData
+from .base import (
+    BaseResponseModel,
+    PendantData,
+    VideoDimensionData,
+    VideoStreamMetaLiteSupportFormatItemData
+)
 
 
-__all__ = ['GetBangumiDetailResponse']
+__all__ = ['GetBangumiDetailResponse', 'GetBangumiStreamMetaResponse']
 
 
 class BangumiActivity(BaseModel):
@@ -319,3 +324,79 @@ class GetBangumiDetailResponse(BaseResponseModel):
     -404：video unavailable
     """
     result: Optional[GetBangumiDetailResult] = None
+
+
+class BangumiStreamMetaRecordInfoData(BaseModel):
+
+    record_icon: str
+    record: str
+
+
+class BangumiStreamMetaDURLItemData(BaseModel):
+
+    order: int
+    length: int
+    size: int
+    ahead: str
+    vhead: str
+    url: str
+    backup_url: List[str]
+    md5: str
+
+
+class BangumiStreamMetaSupportFormatItemData(VideoStreamMetaLiteSupportFormatItemData):
+
+    codecs: Optional[List[str]]
+    description: str
+    display_desc: str
+    format_field: str = Field(..., alias='format')
+    has_preview: bool
+    need_login: Optional[bool] = None
+    sub_description: str
+    superscript: str
+
+
+class BangumiStreamMetaClipInfoListItemData(BaseModel):
+
+    clipType: str
+    end: int
+    materialNo: int
+    start: int
+    toastText: str
+
+
+class GetBangumiStreamMetaResult(BaseModel):
+
+    accept_description: List[str]
+    accept_format: str
+    accept_quality: List[int]
+    bp: int
+    clip_info_list: List[BangumiStreamMetaClipInfoListItemData]
+    code: int
+    durl: List[BangumiStreamMetaDURLItemData]
+    # TODO: determine the type of durls' item
+    durls: List[Any]
+    fnval: int
+    fnver: int
+    format_field: str = Field(..., alias='format')
+    from_field: str = Field(..., alias='from')
+    has_paid: bool
+    is_drm: bool
+    is_preview: int
+    message: str
+    no_rexcode: int
+    quality: int
+    record_info: BangumiStreamMetaRecordInfoData
+    result: str
+    status: int
+    support_formats: List[BangumiStreamMetaSupportFormatItemData]
+    timelength: int  # millisecond
+    type_field: str = Field(..., alias='type')
+    seek_param: str
+    seek_type: str
+    video_codecid: int
+    video_project: bool
+
+
+class GetBangumiStreamMetaResponse(BaseResponseModel):
+    result: Optional[GetBangumiStreamMetaResult] = None

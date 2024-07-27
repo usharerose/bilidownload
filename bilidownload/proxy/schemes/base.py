@@ -46,3 +46,9 @@ class PendantData(BaseModel):
     pid: int = 0                   # Identifier of pendant
     name: str = ''                 # Name of pendant
     image: str = ''                # URL of pendant image
+
+
+class VideoStreamMetaLiteSupportFormatItemData(BaseModel):
+
+    quality: int  # qn
+    new_description: str
