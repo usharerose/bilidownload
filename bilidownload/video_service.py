@@ -1,15 +1,20 @@
 """
 Components on Bilibili videos
 """
+from abc import ABC, abstractmethod
 from enum import Enum
 import re
-from typing import Optional
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 from .proxy import (
     GetBangumiDetailResponse,
     GetCheeseDetailResponse,
     GetVideoInfoResponse,
-    ProxyService
+    GetVideoStreamMetaResponse,
+    ProxyService,
+    VideoStreamMetaLiteSupportFormatItemData
 )
 
 
@@ -45,7 +50,166 @@ VIDEO_TYPE_MAPPING = {
 }
 
 
+DEFAULT_STAFF_TITLE = 'UP主'
+
+
 GET_VIDEO_INFO_FUNC_TEMPLATE = '_get_{video_type}_video_info'
+
+
+class VideoMetaStaffItem(BaseModel):
+
+    avatar_url: str  # Profile icon's source URL
+    mid: int         # Identifier of user
+    name: str        # Nickname of user
+    title: str       # Name of user
+
+
+class VideoPageLiteItemData(BaseModel):
+
+    aid: Optional[int] = None
+    bvid: Optional[str] = None
+    cid: int                    # cid of this page
+    title: str                  # Title of this page
+
+
+class VideoMetaModel(BaseModel):
+
+    work_cover_url: str
+    work_description: str
+    work_url: str
+    work_staff: List[VideoMetaStaffItem]
+    work_title: str
+    work_pages: List[VideoPageLiteItemData]
+
+
+REGISTERED_TYPE_VIDEO_META_PARSER = {}
+
+
+class AbstractVideoMetaParser(ABC):
+
+    @classmethod
+    @abstractmethod
+    def get_video_meta(cls, url: str, session_data: Optional[str] = None) -> VideoMetaModel:
+        pass
+
+
+def register_parser(video_type: VideoType):
+
+    def decorator(klass):
+        if video_type in REGISTERED_TYPE_VIDEO_META_PARSER:
+            raise
+        REGISTERED_TYPE_VIDEO_META_PARSER[video_type] = klass
+        return klass
+
+    return decorator
+
+
+@register_parser(VideoType.VIDEO)
+class CommonVideoMetaParser(AbstractVideoMetaParser):
+
+    @classmethod
+    def _get_bvid(cls, url: str) -> Optional[str]:
+        search_result = VIDEO_URL_BV_PATTERN.search(url)
+        if search_result is None:
+            return None
+        return search_result.group(1)
+
+    @classmethod
+    def _get_aid(cls, url: str) -> Optional[int]:
+        search_result = VIDEO_URL_AV_PATTERN.search(url)
+        if search_result is None:
+            return None
+        return int(search_result.group(1))
+
+    @classmethod
+    def _parse_work_staff(cls, dm: GetVideoInfoResponse) -> List[VideoMetaStaffItem]:
+        work_staff = dm.data.staff
+        if work_staff is None:
+            work_staff = [dm.data.owner]
+        return [
+            VideoMetaStaffItem(
+                avatar_url=item.face,
+                mid=item.mid,
+                name=item.name,
+                title=item.title if hasattr(item, 'title') else DEFAULT_STAFF_TITLE
+            ) for item in work_staff
+        ]
+
+    @classmethod
+    def _get_video_info(cls, url: str, session_data: Optional[str] = None) -> GetVideoInfoResponse:
+        params = {}
+        aid = cls._get_aid(url)
+        if aid is None:
+            bvid = cls._get_bvid(url)
+            params.update({'bvid': bvid})
+        else:
+            params.update({'aid': aid})
+        res_dm = ProxyService.get_video_info_data(session_data=session_data, **params)
+        return res_dm
+
+    @classmethod
+    def _get_video_stream_meta(
+        cls,
+        cid: int,
+        bvid: Optional[str] = None,
+        aid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> GetVideoStreamMetaResponse:
+        params = {}
+        if aid is None:
+            params.update({'bvid': bvid})
+        else:
+            params.update({'aid': aid})
+        params.update({'cid': cid})
+        res_dm = ProxyService.get_video_stream_meta_data(session_data=session_data, **params)
+        return res_dm
+
+    @classmethod
+    def _parse_work_formats(
+        cls,
+        dm: GetVideoStreamMetaResponse
+    ) -> List[VideoStreamMetaLiteSupportFormatItemData]:
+        work_formats = dm.data.support_formats
+        return [
+            VideoStreamMetaLiteSupportFormatItemData(
+                quality=item.quality,
+                new_description=item.new_description
+            ) for item in work_formats
+        ]
+
+    @classmethod
+    def _parse_work_pages(
+        cls,
+        dm: GetVideoInfoResponse
+    ) -> List[VideoPageLiteItemData]:
+        pages = dm.data.pages
+        return [
+            VideoPageLiteItemData(
+                aid=dm.data.aid,
+                bvid=dm.data.bvid,
+                cid=item.cid,
+                title=item.part
+            ) for item in pages
+        ]
+
+    @classmethod
+    def get_video_meta(cls, url: str, session_data: Optional[str] = None) -> VideoMetaModel:
+        video_info = cls._get_video_info(url, session_data)
+        video_stream_meta = cls._get_video_stream_meta(
+            video_info.data.cid,
+            video_info.data.bvid,
+            video_info.data.aid,
+            session_data
+        )
+        return VideoMetaModel(
+            work_cover_url=video_info.data.pic,
+            work_description=video_info.data.desc,
+            work_url=url,
+            work_staff=cls._parse_work_staff(video_info),
+            work_title=video_info.data.title,
+            work_formats=cls._parse_work_formats(video_stream_meta),
+            work_pages=cls._parse_work_pages(video_info)
+        )
 
 
 class VideoService:
