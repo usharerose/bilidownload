@@ -75,6 +75,7 @@ class VideoPageLiteItemData(BaseModel):
     epid: Optional[int] = None
     cid: int                    # cid of this page
     title: str                  # Title of this page
+    badge_text: str
     is_available: bool
 
 
@@ -209,6 +210,7 @@ class CommonVideoMetaParser(AbstractVideoMetaParser):
                 bvid=dm.data.bvid,
                 cid=item.cid,
                 title=item.part,
+                badge_text='',
                 is_available=True
             ) for item in pages
         ]
@@ -303,6 +305,7 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
                 epid=item.id_field,
                 cid=item.cid,
                 title=item.long_title,
+                badge_text=item.badge_info.text,
                 is_available=True if item.status == PGC_AVAILABLE_EPISODE_STATUS_CODE else False
             ) for item in pages
         ]
@@ -317,6 +320,7 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
                         epid=episode.ep_id,
                         cid=episode.cid,
                         title=episode.title,
+                        badge_text=episode.badge_info.text,
                         is_available=True if episode.status == 2 else False
                     )
                 )
@@ -417,6 +421,7 @@ class CheeseVideoMetaParser(AbstractVideoMetaParser):
                 epid=item.id_field,
                 cid=item.cid,
                 title=item.title,
+                badge_text='',
                 is_available=True if item.status == PUGV_AVAILABLE_EPISODE_STATUS_CODE else False
             ) for item in pages
         ]
