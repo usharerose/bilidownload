@@ -85,6 +85,7 @@ class VideoMetaModel(BaseModel):
     work_staff: List[VideoMetaStaffItem]
     work_title: str
     work_pages: List[VideoPageLiteItemData]
+    work_formats: List[VideoStreamMetaLiteSupportFormatItemData]
 
 
 REGISTERED_TYPE_VIDEO_COMPONENT = {}
