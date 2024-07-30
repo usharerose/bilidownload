@@ -293,6 +293,12 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
         ]
 
     @classmethod
+    def _format_video_page_title(cls, title: str, long_title: str) -> str:
+        if all([title, long_title]):
+            return f'{title} {long_title}'
+        return title if title else long_title
+
+    @classmethod
     def _parse_work_pages(
         cls,
         dm: GetBangumiDetailResponse
@@ -304,7 +310,7 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
                 bvid=item.bvid,
                 epid=item.id_field,
                 cid=item.cid,
-                title=item.long_title,
+                title=cls._format_video_page_title(item.title, item.long_title),
                 badge_text=item.badge_info.text,
                 is_available=True if item.status == PGC_AVAILABLE_EPISODE_STATUS_CODE else False
             ) for item in pages
@@ -319,7 +325,7 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
                         bvid=episode.bvid,
                         epid=episode.ep_id,
                         cid=episode.cid,
-                        title=episode.title,
+                        title=cls._format_video_page_title(episode.title, episode.long_title),
                         badge_text=episode.badge_info.text,
                         is_available=True if episode.status == 2 else False
                     )
