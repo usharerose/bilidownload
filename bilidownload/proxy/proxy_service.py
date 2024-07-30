@@ -293,12 +293,25 @@ class ProxyService:
     def get_bangumi_stream_meta(
         cls,
         epid: int,
+        qn: Optional[int] = None,
+        fnval: int = 1,
+        fourk: int = 0,
         session_data: Optional[str] = None
     ) -> Response:
         session = requests.session()
         if session_data:
             session.cookies.set('SESSDATA', session_data)
+
         params = {'ep_id': epid}
+
+        if qn is not None:
+            params.update({'qn': qn})
+
+        params.update({
+            'fnval': fnval,
+            'fourk': fourk
+        })
+
         response = session.get(REQUEST_PGC_STREAM_META_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
         return response
 
@@ -306,9 +319,12 @@ class ProxyService:
     def get_bangumi_stream_meta_data(
         cls,
         epid: int,
+        qn: Optional[int] = None,
+        fnval: int = 1,
+        fourk: int = 0,
         session_data: Optional[str] = None
     ) -> GetBangumiStreamMetaResponse:
-        response = cls.get_bangumi_stream_meta(epid, session_data)
+        response = cls.get_bangumi_stream_meta(epid, qn, fnval, fourk, session_data)
         data = json.loads(response.content.decode('utf-8'))
         return GetBangumiStreamMetaResponse.model_validate(data)
 
