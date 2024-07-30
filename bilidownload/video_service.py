@@ -16,6 +16,8 @@ from .proxy import (
     GetVideoInfoResponse,
     GetVideoStreamMetaResponse,
     ProxyService,
+    PGC_AVAILABLE_EPISODE_STATUS_CODE,
+    PUGV_AVAILABLE_EPISODE_STATUS_CODE,
     VideoStreamMetaLiteSupportFormatItemData
 )
 
@@ -55,9 +57,6 @@ VIDEO_TYPE_MAPPING = {
 DEFAULT_STAFF_TITLE = 'UP主'
 
 
-GET_VIDEO_INFO_FUNC_TEMPLATE = '_get_{video_type}_video_info'
-
-
 class VideoMetaStaffItem(BaseModel):
 
     avatar_url: str  # Profile icon's source URL
@@ -73,6 +72,9 @@ class VideoPageLiteItemData(BaseModel):
     epid: Optional[int] = None
     cid: int                    # cid of this page
     title: str                  # Title of this page
+    badge_text: str
+    is_available: bool
+    duration: Optional[int]     # unit is second
 
 
 class VideoMetaModel(BaseModel):
@@ -139,20 +141,6 @@ def register_parser(video_type: VideoType):
 class CommonVideoMetaParser(AbstractVideoMetaParser):
 
     @classmethod
-    def _parse_work_staff(cls, dm: GetVideoInfoResponse) -> List[VideoMetaStaffItem]:
-        work_staff = dm.data.staff
-        if work_staff is None:
-            work_staff = [dm.data.owner]
-        return [
-            VideoMetaStaffItem(
-                avatar_url=item.face,
-                mid=item.mid,
-                name=item.name,
-                title=item.title if hasattr(item, 'title') else DEFAULT_STAFF_TITLE
-            ) for item in work_staff
-        ]
-
-    @classmethod
     def _get_video_info(cls, url: str, session_data: Optional[str] = None) -> GetVideoInfoResponse:
         params = {}
         aid = cls._get_aid(url)
@@ -205,8 +193,25 @@ class CommonVideoMetaParser(AbstractVideoMetaParser):
                 aid=dm.data.aid,
                 bvid=dm.data.bvid,
                 cid=item.cid,
-                title=item.part
+                title=item.part,
+                badge_text='',
+                is_available=True,
+                duration=item.duration
             ) for item in pages
+        ]
+
+    @classmethod
+    def _parse_work_staff(cls, dm: GetVideoInfoResponse) -> List[VideoMetaStaffItem]:
+        work_staff = dm.data.staff
+        if work_staff is None:
+            work_staff = [dm.data.owner]
+        return [
+            VideoMetaStaffItem(
+                avatar_url=item.face,
+                mid=item.mid,
+                name=item.name,
+                title=item.title if hasattr(item, 'title') else DEFAULT_STAFF_TITLE
+            ) for item in work_staff
         ]
 
     @classmethod
@@ -231,6 +236,12 @@ class CommonVideoMetaParser(AbstractVideoMetaParser):
 
 @register_parser(VideoType.BANGUMI)
 class BangumiVideoMetaParser(AbstractVideoMetaParser):
+
+    @classmethod
+    def _format_video_page_title(cls, title: str, long_title: str) -> str:
+        if all([title, long_title]):
+            return f'{title} {long_title}'
+        return title if title else long_title
 
     @classmethod
     def _get_video_info(
@@ -259,21 +270,6 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
         return res_dm
 
     @classmethod
-    def _parse_work_staff(
-        cls,
-        dm: GetBangumiDetailResponse
-    ) -> List[VideoMetaStaffItem]:
-        work_staff = [dm.result.up_info]
-        return [
-            VideoMetaStaffItem(
-                avatar_url=item.avatar,
-                mid=item.mid,
-                name=item.uname,
-                title=DEFAULT_STAFF_TITLE
-            ) for item in work_staff
-        ]
-
-    @classmethod
     def _parse_work_formats(
         cls,
         dm: GetBangumiStreamMetaResponse
@@ -298,7 +294,10 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
                 bvid=item.bvid,
                 epid=item.id_field,
                 cid=item.cid,
-                title=item.long_title
+                title=cls._format_video_page_title(item.title, item.long_title),
+                badge_text=item.badge_info.text,
+                is_available=True if item.status == PGC_AVAILABLE_EPISODE_STATUS_CODE else False,
+                duration=None
             ) for item in pages
         ]
 
@@ -311,10 +310,28 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
                         bvid=episode.bvid,
                         epid=episode.ep_id,
                         cid=episode.cid,
-                        title=episode.title
+                        title=cls._format_video_page_title(episode.title, episode.long_title),
+                        badge_text=episode.badge_info.text,
+                        is_available=True if episode.status == 2 else False,
+                        duration=episode.duration // 1000  # source's unit is millisecond
                     )
                 )
         return result
+
+    @classmethod
+    def _parse_work_staff(
+        cls,
+        dm: GetBangumiDetailResponse
+    ) -> List[VideoMetaStaffItem]:
+        work_staff = [dm.result.up_info]
+        return [
+            VideoMetaStaffItem(
+                avatar_url=item.avatar,
+                mid=item.mid,
+                name=item.uname,
+                title=DEFAULT_STAFF_TITLE
+            ) for item in work_staff
+        ]
 
     @classmethod
     def get_video_meta(cls, url: str, session_data: Optional[str] = None) -> VideoMetaModel:
@@ -372,21 +389,6 @@ class CheeseVideoMetaParser(AbstractVideoMetaParser):
         return res_dm
 
     @classmethod
-    def _parse_work_staff(
-        cls,
-        dm: GetCheeseDetailResponse
-    ) -> List[VideoMetaStaffItem]:
-        work_staff = [dm.data.up_info]
-        return [
-            VideoMetaStaffItem(
-                avatar_url=item.avatar,
-                mid=item.mid,
-                name=item.uname,
-                title=DEFAULT_STAFF_TITLE
-            ) for item in work_staff
-        ]
-
-    @classmethod
     def _parse_work_formats(
         cls,
         dm: GetCheeseStreamMetaResponse
@@ -410,8 +412,26 @@ class CheeseVideoMetaParser(AbstractVideoMetaParser):
                 aid=item.aid,
                 epid=item.id_field,
                 cid=item.cid,
-                title=item.title
+                title=item.title,
+                badge_text='',
+                is_available=True if item.status == PUGV_AVAILABLE_EPISODE_STATUS_CODE else False,
+                duration=item.duration
             ) for item in pages
+        ]
+
+    @classmethod
+    def _parse_work_staff(
+        cls,
+        dm: GetCheeseDetailResponse
+    ) -> List[VideoMetaStaffItem]:
+        work_staff = [dm.data.up_info]
+        return [
+            VideoMetaStaffItem(
+                avatar_url=item.avatar,
+                mid=item.mid,
+                name=item.uname,
+                title=DEFAULT_STAFF_TITLE
+            ) for item in work_staff
         ]
 
     @classmethod

@@ -16,3 +16,7 @@ REQUEST_WEB_PUBLIC_KEY_URL = \
     'https://passport.bilibili.com/x/passport-login/web/key'
 REQUEST_WEB_SPI_URL = 'https://api.bilibili.com/x/frontend/finger/spi'
 REQUEST_WEB_USER_INFO_URL = 'https://api.bilibili.com/x/web-interface/nav'
+
+
+PGC_AVAILABLE_EPISODE_STATUS_CODE = 2  # 13 is not available
+PUGV_AVAILABLE_EPISODE_STATUS_CODE = 1  # 2 is not available

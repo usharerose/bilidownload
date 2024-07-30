@@ -219,7 +219,7 @@ class BangumiSectionItemEpisodeItemData(BangumiEpisodeItemData):
     icon_font: BangumiSectionItemEpisodeItemIconFontData
     is_view_hide: bool
     showDrmLoginDialog: bool
-    skip: BangumiSectionItemEpisodeItemSkipData
+    skip: Optional[BangumiSectionItemEpisodeItemSkipData] = None
     stat: BangumiSectionItemEpisodeItemStatData
     stat_for_unity: BangumiSectionItemEpisodeItemStatForUnityData
 
