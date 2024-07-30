@@ -357,3 +357,10 @@ class ProxyService:
         response = cls.get_cheese_stream_meta(aid, epid, cid, session_data)
         data = json.loads(response.content.decode('utf-8'))
         return GetCheeseStreamMetaResponse.model_validate(data)
+
+    @classmethod
+    def get_video_stream_response(
+        cls,
+        url: str
+    ) -> Response:
+        return requests.get(url, headers=HEADERS)
