@@ -356,17 +356,29 @@ class ProxyService:
         aid: int,
         epid: int,
         cid: int,
+        qn: Optional[int] = None,
+        fnval: int = 1,
+        fourk: int = 0,
         session_data: Optional[str] = None
     ) -> Response:
         session = requests.session()
         if session_data:
             session.cookies.set('SESSDATA', session_data)
+
         params = {
             'avid': aid,
             'ep_id': epid,
-            'cid': cid,
-            'fnval': VIDEO_FORMAT_DASH
+            'cid': cid
         }
+
+        if qn is not None:
+            params.update({'qn': qn})
+
+        params.update({
+            'fnval': fnval,
+            'fourk': fourk
+        })
+
         response = session.get(REQUEST_PUGV_STREAM_META_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
         return response
 
@@ -376,9 +388,20 @@ class ProxyService:
         aid: int,
         epid: int,
         cid: int,
+        qn: Optional[int] = None,
+        fnval: int = 1,
+        fourk: int = 0,
         session_data: Optional[str] = None
     ) -> GetCheeseStreamMetaResponse:
-        response = cls.get_cheese_stream_meta(aid, epid, cid, session_data)
+        response = cls.get_cheese_stream_meta(
+            aid,
+            epid,
+            cid,
+            qn,
+            fnval,
+            fourk,
+            session_data
+        )
         data = json.loads(response.content.decode('utf-8'))
         return GetCheeseStreamMetaResponse.model_validate(data)
 
