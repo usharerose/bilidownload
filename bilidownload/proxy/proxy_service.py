@@ -196,6 +196,9 @@ class ProxyService:
         cid: int,
         bvid: Optional[str] = None,
         aid: Optional[int] = None,
+        qn: Optional[int] = None,
+        fnval: int = 1,
+        fourk: int = 0,
         session_data: Optional[str] = None
     ) -> Response:
         """
@@ -208,12 +211,22 @@ class ProxyService:
         session = requests.session()
         if session_data:
             session.cookies.set('SESSDATA', session_data)
+
         params = {}
         if bvid is not None:
             params.update({'bvid': bvid})
         else:
             params.update({'avid': aid})
         params.update({'cid': cid})
+
+        if qn is not None:
+            params.update({'qn': qn})
+
+        params.update({
+            'fnval': fnval,
+            'fourk': fourk
+        })
+
         response = session.get(REQUEST_VIDEO_STREAM_META_URL, params=params, headers=HEADERS, timeout=TIMEOUT)
         return response
 
@@ -223,9 +236,20 @@ class ProxyService:
         cid: int,
         bvid: Optional[str] = None,
         aid: Optional[int] = None,
+        qn: Optional[int] = None,
+        fnval: int = 1,
+        fourk: int = 0,
         session_data: Optional[str] = None
     ) -> GetVideoStreamMetaResponse:
-        response = cls.get_video_stream_meta(cid, bvid, aid, session_data)
+        response = cls.get_video_stream_meta(
+            cid,
+            bvid,
+            aid,
+            qn,
+            fnval,
+            fourk,
+            session_data
+        )
         data = json.loads(response.content.decode('utf-8'))
         return GetVideoStreamMetaResponse.model_validate(data)
 
