@@ -16,6 +16,8 @@ from .proxy import (
     GetVideoInfoResponse,
     GetVideoStreamMetaResponse,
     ProxyService,
+    PGC_AVAILABLE_EPISODE_STATUS_CODE,
+    PUGV_AVAILABLE_EPISODE_STATUS_CODE,
     VideoStreamMetaLiteSupportFormatItemData
 )
 
@@ -73,6 +75,7 @@ class VideoPageLiteItemData(BaseModel):
     epid: Optional[int] = None
     cid: int                    # cid of this page
     title: str                  # Title of this page
+    is_available: bool
 
 
 class VideoMetaModel(BaseModel):
@@ -205,7 +208,8 @@ class CommonVideoMetaParser(AbstractVideoMetaParser):
                 aid=dm.data.aid,
                 bvid=dm.data.bvid,
                 cid=item.cid,
-                title=item.part
+                title=item.part,
+                is_available=True
             ) for item in pages
         ]
 
@@ -298,7 +302,8 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
                 bvid=item.bvid,
                 epid=item.id_field,
                 cid=item.cid,
-                title=item.long_title
+                title=item.long_title,
+                is_available=True if item.status == PGC_AVAILABLE_EPISODE_STATUS_CODE else False
             ) for item in pages
         ]
 
@@ -311,7 +316,8 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
                         bvid=episode.bvid,
                         epid=episode.ep_id,
                         cid=episode.cid,
-                        title=episode.title
+                        title=episode.title,
+                        is_available=True if episode.status == 2 else False
                     )
                 )
         return result
@@ -410,7 +416,8 @@ class CheeseVideoMetaParser(AbstractVideoMetaParser):
                 aid=item.aid,
                 epid=item.id_field,
                 cid=item.cid,
-                title=item.title
+                title=item.title,
+                is_available=True if item.status == PUGV_AVAILABLE_EPISODE_STATUS_CODE else False
             ) for item in pages
         ]
 
