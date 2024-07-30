@@ -87,10 +87,10 @@ class VideoMetaModel(BaseModel):
     work_pages: List[VideoPageLiteItemData]
 
 
-REGISTERED_TYPE_VIDEO_META_PARSER = {}
+REGISTERED_TYPE_VIDEO_COMPONENT = {}
 
 
-class AbstractVideoMetaParser(ABC):
+class AbstractVideoComponent(ABC):
 
     @classmethod
     @abstractmethod
@@ -126,19 +126,19 @@ class AbstractVideoMetaParser(ABC):
         return int(search_result.group(1))
 
 
-def register_parser(video_type: VideoType):
+def register_component(video_type: VideoType):
 
     def decorator(klass):
-        if video_type in REGISTERED_TYPE_VIDEO_META_PARSER:
+        if video_type in REGISTERED_TYPE_VIDEO_COMPONENT:
             raise
-        REGISTERED_TYPE_VIDEO_META_PARSER[video_type] = klass
+        REGISTERED_TYPE_VIDEO_COMPONENT[video_type] = klass
         return klass
 
     return decorator
 
 
-@register_parser(VideoType.VIDEO)
-class CommonVideoMetaParser(AbstractVideoMetaParser):
+@register_component(VideoType.VIDEO)
+class CommonVideoComponent(AbstractVideoComponent):
 
     @classmethod
     def _get_video_info(cls, url: str, session_data: Optional[str] = None) -> GetVideoInfoResponse:
@@ -234,8 +234,8 @@ class CommonVideoMetaParser(AbstractVideoMetaParser):
         )
 
 
-@register_parser(VideoType.BANGUMI)
-class BangumiVideoMetaParser(AbstractVideoMetaParser):
+@register_component(VideoType.BANGUMI)
+class BangumiVideoComponent(AbstractVideoComponent):
 
     @classmethod
     def _format_video_page_title(cls, title: str, long_title: str) -> str:
@@ -353,8 +353,8 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
         )
 
 
-@register_parser(VideoType.CHEESE)
-class CheeseVideoMetaParser(AbstractVideoMetaParser):
+@register_component(VideoType.CHEESE)
+class CheeseVideoComponent(AbstractVideoComponent):
 
     @classmethod
     def _get_video_info(
@@ -477,5 +477,5 @@ class VideoService:
         video_type = cls._get_video_type(url)
         if video_type is None:
             raise
-        parser_kls = REGISTERED_TYPE_VIDEO_META_PARSER[video_type]
+        parser_kls = REGISTERED_TYPE_VIDEO_COMPONENT[video_type]
         return parser_kls.get_video_meta(url, session_data)
