@@ -77,6 +77,7 @@ class VideoPageLiteItemData(BaseModel):
     title: str                  # Title of this page
     badge_text: str
     is_available: bool
+    duration: Optional[int]     # unit is second
 
 
 class VideoMetaModel(BaseModel):
@@ -211,7 +212,8 @@ class CommonVideoMetaParser(AbstractVideoMetaParser):
                 cid=item.cid,
                 title=item.part,
                 badge_text='',
-                is_available=True
+                is_available=True,
+                duration=item.duration
             ) for item in pages
         ]
 
@@ -312,7 +314,8 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
                 cid=item.cid,
                 title=cls._format_video_page_title(item.title, item.long_title),
                 badge_text=item.badge_info.text,
-                is_available=True if item.status == PGC_AVAILABLE_EPISODE_STATUS_CODE else False
+                is_available=True if item.status == PGC_AVAILABLE_EPISODE_STATUS_CODE else False,
+                duration=None
             ) for item in pages
         ]
 
@@ -327,7 +330,8 @@ class BangumiVideoMetaParser(AbstractVideoMetaParser):
                         cid=episode.cid,
                         title=cls._format_video_page_title(episode.title, episode.long_title),
                         badge_text=episode.badge_info.text,
-                        is_available=True if episode.status == 2 else False
+                        is_available=True if episode.status == 2 else False,
+                        duration=episode.duration // 1000  # source's unit is millisecond
                     )
                 )
         return result
@@ -428,7 +432,8 @@ class CheeseVideoMetaParser(AbstractVideoMetaParser):
                 cid=item.cid,
                 title=item.title,
                 badge_text='',
-                is_available=True if item.status == PUGV_AVAILABLE_EPISODE_STATUS_CODE else False
+                is_available=True if item.status == PUGV_AVAILABLE_EPISODE_STATUS_CODE else False,
+                duration=item.duration
             ) for item in pages
         ]
 
