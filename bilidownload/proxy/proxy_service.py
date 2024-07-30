@@ -426,4 +426,4 @@ class ProxyService:
         cls,
         url: str
     ) -> Response:
-        return requests.get(url, headers=HEADERS)
+        return requests.get(url, headers=HEADERS, stream=True)
