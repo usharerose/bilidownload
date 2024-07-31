@@ -4,7 +4,7 @@ Components on Bilibili videos
 from abc import ABC, abstractmethod
 from enum import Enum
 import re
-from typing import List, Optional
+from typing import List, Optional, Type, TypeVar, Union
 
 from pydantic import BaseModel
 
@@ -78,6 +78,7 @@ class VideoPageLiteItemData(BaseModel):
     badge_text: str
     is_available: bool
     duration: Optional[int]     # unit is second
+    video_type: str
 
 
 class VideoMetaModel(BaseModel):
@@ -99,7 +100,53 @@ class AbstractVideoComponent(ABC):
     @classmethod
     @abstractmethod
     def get_video_meta(cls, url: str, session_data: Optional[str] = None) -> VideoMetaModel:
+        """
+        get video's meta, including cover, link, staff, pages, etc
+        """
         pass
+
+    @classmethod
+    @abstractmethod
+    def get_video_stream_meta(
+        cls,
+        cid: int,
+        bvid: Optional[str] = None,
+        aid: Optional[int] = None,
+        epid: Optional[int] = None,
+        session_data: Optional[str] = None
+    ) -> Union[
+        GetVideoStreamMetaResponse,
+        GetBangumiStreamMetaResponse,
+        GetCheeseStreamMetaResponse
+    ]:
+        """
+        get video's stream meta, including source url
+        """
+        pass
+
+    @classmethod
+    def download_data(
+        cls,
+        location_path: str,
+        cid: int,
+        bvid: Optional[str] = None,
+        aid: Optional[int] = None,
+        epid: Optional[int] = None,
+        title: str = '',
+        session_data: Optional[str] = None
+    ):
+        video_stream_meta = cls.get_video_stream_meta(
+            cid=cid,
+            bvid=bvid,
+            aid=aid,
+            epid=epid,
+            session_data=session_data
+        )
+        with open(location_path + title, 'wb') as f:
+            for durl_item in video_stream_meta.data.durl:
+                with ProxyService.get_video_stream_response(durl_item.url) as response:
+                    for chunk in response.iter_content(chunk_size=UNIT_CHUNK):
+                        f.write(chunk)
 
     @classmethod
     def _get_bvid(cls, url: str) -> Optional[str]:
@@ -130,12 +177,16 @@ class AbstractVideoComponent(ABC):
         return int(search_result.group(1))
 
 
+VideoComponentType = TypeVar('VideoComponentType', bound=AbstractVideoComponent)
+
+
 def register_component(video_type: VideoType):
 
     def decorator(klass):
-        if video_type in REGISTERED_TYPE_VIDEO_COMPONENT:
+        video_type_name = video_type.name.lower()
+        if video_type_name in REGISTERED_TYPE_VIDEO_COMPONENT:
             raise
-        REGISTERED_TYPE_VIDEO_COMPONENT[video_type] = klass
+        REGISTERED_TYPE_VIDEO_COMPONENT[video_type_name] = klass
         return klass
 
     return decorator
@@ -157,11 +208,12 @@ class CommonVideoComponent(AbstractVideoComponent):
         return res_dm
 
     @classmethod
-    def _get_video_stream_meta(
+    def get_video_stream_meta(
         cls,
         cid: int,
         bvid: Optional[str] = None,
         aid: Optional[int] = None,
+        epid: Optional[int] = None,
         session_data: Optional[str] = None
     ) -> GetVideoStreamMetaResponse:
         params = {}
@@ -200,7 +252,8 @@ class CommonVideoComponent(AbstractVideoComponent):
                 title=item.part,
                 badge_text='',
                 is_available=True,
-                duration=item.duration
+                duration=item.duration,
+                video_type=VideoType.VIDEO.name.lower()
             ) for item in pages
         ]
 
@@ -221,11 +274,11 @@ class CommonVideoComponent(AbstractVideoComponent):
     @classmethod
     def get_video_meta(cls, url: str, session_data: Optional[str] = None) -> VideoMetaModel:
         video_info = cls._get_video_info(url, session_data)
-        video_stream_meta = cls._get_video_stream_meta(
-            video_info.data.cid,
-            video_info.data.bvid,
-            video_info.data.aid,
-            session_data
+        video_stream_meta = cls.get_video_stream_meta(
+            cid=video_info.data.cid,
+            bvid=video_info.data.bvid,
+            aid=video_info.data.aid,
+            session_data=session_data
         )
         return VideoMetaModel(
             work_cover_url=video_info.data.pic,
@@ -236,28 +289,6 @@ class CommonVideoComponent(AbstractVideoComponent):
             work_formats=cls._parse_work_formats(video_stream_meta),
             work_pages=cls._parse_work_pages(video_info)
         )
-
-    @classmethod
-    def download_data(
-        cls,
-        location_path: str,
-        cid: int,
-        aid: Optional[str] = None,
-        bvid: Optional[str] = None,
-        title: str = '',
-        session_data: Optional[str] = None
-    ):
-        video_stream_meta = cls._get_video_stream_meta(
-            cid,
-            bvid,
-            aid,
-            session_data
-        )
-        with open(location_path + title, 'wb') as f:
-            for durl_item in video_stream_meta.data.durl:
-                with ProxyService.get_video_stream_response(durl_item.url) as response:
-                    for chunk in response.iter_content(chunk_size=UNIT_CHUNK):
-                        f.write(chunk)
 
 
 @register_component(VideoType.BANGUMI)
@@ -286,9 +317,12 @@ class BangumiVideoComponent(AbstractVideoComponent):
         return res_dm
 
     @classmethod
-    def _get_video_stream_meta(
+    def get_video_stream_meta(
         cls,
-        epid: int,
+        cid: int,
+        bvid: Optional[str] = None,
+        aid: Optional[int] = None,
+        epid: Optional[int] = None,
         session_data: Optional[str] = None
     ) -> GetBangumiStreamMetaResponse:
         params = {'epid': epid}
@@ -323,7 +357,8 @@ class BangumiVideoComponent(AbstractVideoComponent):
                 title=cls._format_video_page_title(item.title, item.long_title),
                 badge_text=item.badge_info.text,
                 is_available=True if item.status == PGC_AVAILABLE_EPISODE_STATUS_CODE else False,
-                duration=None
+                duration=None,
+                video_type=VideoType.BANGUMI.name.lower()
             ) for item in pages
         ]
 
@@ -339,7 +374,8 @@ class BangumiVideoComponent(AbstractVideoComponent):
                         title=cls._format_video_page_title(episode.title, episode.long_title),
                         badge_text=episode.badge_info.text,
                         is_available=True if episode.status == 2 else False,
-                        duration=episode.duration // 1000  # source's unit is millisecond
+                        duration=episode.duration // 1000,  # source's unit is millisecond
+                        video_type=VideoType.BANGUMI.name.lower()
                     )
                 )
         return result
@@ -364,9 +400,11 @@ class BangumiVideoComponent(AbstractVideoComponent):
         video_info = cls._get_video_info(url, session_data)
         sample_episode, *_ = video_info.result.episodes
 
-        video_stream_meta = cls._get_video_stream_meta(
-            sample_episode.id_field,
-            session_data
+        video_stream_meta = cls.get_video_stream_meta(
+            cid=sample_episode.cid,
+            bvid=sample_episode.bvid,
+            aid=sample_episode.aid,
+            session_data=session_data
         )
         return VideoMetaModel(
             work_cover_url=video_info.result.cover,
@@ -399,13 +437,16 @@ class CheeseVideoComponent(AbstractVideoComponent):
         return res_dm
 
     @classmethod
-    def _get_video_stream_meta(
+    def get_video_stream_meta(
         cls,
-        aid: int,
-        epid: int,
         cid: int,
+        bvid: Optional[str] = None,
+        aid: Optional[int] = None,
+        epid: Optional[int] = None,
         session_data: Optional[str] = None
     ) -> GetCheeseStreamMetaResponse:
+        if any([item is None for item in (aid, epid)]):
+            raise
         params = {
             'aid': aid,
             'epid': epid,
@@ -441,7 +482,8 @@ class CheeseVideoComponent(AbstractVideoComponent):
                 title=item.title,
                 badge_text='',
                 is_available=True if item.status == PUGV_AVAILABLE_EPISODE_STATUS_CODE else False,
-                duration=item.duration
+                duration=item.duration,
+                video_type=VideoType.CHEESE.name.lower()
             ) for item in pages
         ]
 
@@ -468,10 +510,10 @@ class CheeseVideoComponent(AbstractVideoComponent):
     ) -> VideoMetaModel:
         video_info = cls._get_video_info(url, session_data)
         sample_episode, *_ = video_info.data.episodes
-        video_stream_meta = cls._get_video_stream_meta(
-            sample_episode.aid,
-            sample_episode.id_field,
-            sample_episode.cid
+        video_stream_meta = cls.get_video_stream_meta(
+            cid=sample_episode.cid,
+            aid=sample_episode.aid,
+            epid=sample_episode.id_field
         )
         return VideoMetaModel(
             work_cover_url=video_info.data.cover,
@@ -495,13 +537,43 @@ class VideoService:
         return None
 
     @classmethod
+    def _get_video_component(
+        cls,
+        video_type_name: Optional[str] = None
+    ) -> Type[VideoComponentType]:
+        if video_type_name is None:
+            raise
+        return REGISTERED_TYPE_VIDEO_COMPONENT[video_type_name]
+
+    @classmethod
     def get_video_meta(
         cls,
         url: str,
         session_data: Optional[str] = None
     ) -> VideoMetaModel:
         video_type = cls._get_video_type(url)
-        if video_type is None:
-            raise
-        parser_kls = REGISTERED_TYPE_VIDEO_COMPONENT[video_type]
-        return parser_kls.get_video_meta(url, session_data)
+        component_kls = cls._get_video_component(video_type.name.lower())
+        return component_kls.get_video_meta(url, session_data)
+
+    @classmethod
+    def download_data(
+        cls,
+        location_path: str,
+        video_type_name: str,
+        cid: int,
+        bvid: Optional[str] = None,
+        aid: Optional[int] = None,
+        epid: Optional[int] = None,
+        title: str = '',
+        session_data: Optional[str] = None
+    ) -> None:
+        component_kls = cls._get_video_component(video_type_name)
+        component_kls.download_data(
+            location_path=location_path,
+            cid=cid,
+            bvid=bvid,
+            aid=aid,
+            epid=epid,
+            title=title,
+            session_data=session_data
+        )
