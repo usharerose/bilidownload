@@ -12,6 +12,7 @@ from .constants import (
     VideoQualityNumber
 )
 from .schemes import (
+    VideoFormatItemData,
     VideoMetaModel,
     VideoMetaStaffItem,
     VideoPageLiteItemData
@@ -20,8 +21,7 @@ from ..proxy import (
     GetCheeseDetailResponse,
     GetCheeseStreamMetaResponse,
     PUGV_AVAILABLE_EPISODE_STATUS_CODE,
-    ProxyService,
-    VideoStreamMetaLiteSupportFormatItemData
+    ProxyService
 )
 
 
@@ -73,12 +73,14 @@ class CheeseVideoComponent(AbstractVideoComponent):
     def _parse_work_formats(
         cls,
         dm: GetCheeseStreamMetaResponse
-    ) -> List[VideoStreamMetaLiteSupportFormatItemData]:
+    ) -> List[VideoFormatItemData]:
         work_formats = dm.data.support_formats
         return [
-            VideoStreamMetaLiteSupportFormatItemData(
+            VideoFormatItemData(
                 quality=item.quality,
-                new_description=item.new_description
+                new_description=item.new_description,
+                is_login_needed=VideoQualityNumber.from_value(item.quality).is_login_needed,
+                is_vip_needed=VideoQualityNumber.from_value(item.quality).is_vip_needed
             ) for item in work_formats
         ]
 

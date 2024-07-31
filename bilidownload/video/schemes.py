@@ -31,7 +31,8 @@ class VideoPageLiteItemData(BaseModel):
 
 class VideoFormatItemData(VideoStreamMetaLiteSupportFormatItemData):
 
-    is_available: bool
+    is_login_needed: bool
+    is_vip_needed: bool
 
 
 class VideoMetaModel(BaseModel):

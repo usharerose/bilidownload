@@ -4,6 +4,13 @@ Constants on Video
 from enum import Enum, IntEnum
 from functools import reduce
 import re
+from typing import (
+    Type,
+    TypeVar
+)
+
+
+VideoQN = TypeVar('VideoQN', bound='VideoQualityNumber')
 
 
 class VideoType(Enum):
@@ -35,6 +42,13 @@ class VideoQualityNumber(IntEnum):
     @property
     def is_vip_needed(self) -> bool:
         return self.value > self.P1080.value
+
+    @classmethod
+    def from_value(cls, qn: int) -> VideoQN:
+        for item in cls:
+            if item == qn:
+                return item
+        raise
 
 
 class VideoFormatNumber(IntEnum):
