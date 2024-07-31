@@ -100,12 +100,12 @@ class VideoSubtitleAuthorData(BaseModel):
 
 class VideoSubtitleItemData(BaseModel):
 
-    id: int                          # identifier of subtitle
-    lan: str                         # Language
-    lan_doc: str                     # Language name of subtitle language
-    is_lock: bool                    # Whether the subtitle is locked or not
-    author_mid: int                  # Identifier of user who uploads the subtitle
-    subtitle_url: str                # URL of subtitle JSON file
+    id: int                           # identifier of subtitle
+    lan: str                          # Language
+    lan_doc: str                      # Language name of subtitle language
+    is_lock: bool                     # Whether the subtitle is locked or not
+    author_mid: Optional[int] = None  # Identifier of user who uploads the subtitle
+    subtitle_url: str                 # URL of subtitle JSON file
     author: VideoSubtitleAuthorData
 
 
