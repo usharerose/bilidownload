@@ -57,6 +57,9 @@ VIDEO_TYPE_MAPPING = {
 DEFAULT_STAFF_TITLE = 'UP主'
 
 
+UNIT_CHUNK = 8192
+
+
 class VideoMetaStaffItem(BaseModel):
 
     avatar_url: str  # Profile icon's source URL
@@ -233,6 +236,28 @@ class CommonVideoComponent(AbstractVideoComponent):
             work_formats=cls._parse_work_formats(video_stream_meta),
             work_pages=cls._parse_work_pages(video_info)
         )
+
+    @classmethod
+    def download_data(
+        cls,
+        location_path: str,
+        cid: int,
+        aid: Optional[str] = None,
+        bvid: Optional[str] = None,
+        title: str = '',
+        session_data: Optional[str] = None
+    ):
+        video_stream_meta = cls._get_video_stream_meta(
+            cid,
+            bvid,
+            aid,
+            session_data
+        )
+        with open(location_path + title, 'wb') as f:
+            for durl_item in video_stream_meta.data.durl:
+                with ProxyService.get_video_stream_response(durl_item.url) as response:
+                    for chunk in response.iter_content(chunk_size=UNIT_CHUNK):
+                        f.write(chunk)
 
 
 @register_component(VideoType.BANGUMI)
