@@ -138,7 +138,7 @@ class CheesePaidJumpData(BaseModel):
 class CheesePaymentData(BaseModel):
     bp_enough: int
     desc: str
-    discount_desc: str
+    discount_desc: Optional[str] = None
     my_bp: int
     pay_shade: str
     price: float
@@ -238,7 +238,7 @@ class CheeseUserStatusData(BaseModel):
 class GetCheeseDetailData(BaseModel):
 
     abtest_info: CheeseAbtestInfo
-    active_market: List[int]
+    active_market: Optional[List[int]] = None
     # TODO: determine the type of activity list item
     activity_list: List[Any]
     be_subscription: bool

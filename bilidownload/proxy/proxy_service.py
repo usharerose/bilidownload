@@ -2,7 +2,6 @@
 Bilibili official API proxy
 """
 import copy
-from enum import Enum
 import json
 from typing import Optional, Union
 from urllib.parse import urlencode
@@ -198,7 +197,7 @@ class ProxyService:
         aid: Optional[int] = None,
         qn: Optional[int] = None,
         fnval: int = 1,
-        fourk: int = 0,
+        fourk: int = 1,
         session_data: Optional[str] = None
     ) -> Response:
         """
@@ -238,7 +237,7 @@ class ProxyService:
         aid: Optional[int] = None,
         qn: Optional[int] = None,
         fnval: int = 1,
-        fourk: int = 0,
+        fourk: int = 1,
         session_data: Optional[str] = None
     ) -> GetVideoStreamMetaResponse:
         response = cls.get_video_stream_meta(
@@ -295,7 +294,7 @@ class ProxyService:
         epid: int,
         qn: Optional[int] = None,
         fnval: int = 1,
-        fourk: int = 0,
+        fourk: int = 1,
         session_data: Optional[str] = None
     ) -> Response:
         session = requests.session()
@@ -321,7 +320,7 @@ class ProxyService:
         epid: int,
         qn: Optional[int] = None,
         fnval: int = 1,
-        fourk: int = 0,
+        fourk: int = 1,
         session_data: Optional[str] = None
     ) -> GetBangumiStreamMetaResponse:
         response = cls.get_bangumi_stream_meta(epid, qn, fnval, fourk, session_data)
@@ -374,7 +373,7 @@ class ProxyService:
         cid: int,
         qn: Optional[int] = None,
         fnval: int = 1,
-        fourk: int = 0,
+        fourk: int = 1,
         session_data: Optional[str] = None
     ) -> Response:
         session = requests.session()
@@ -406,7 +405,7 @@ class ProxyService:
         cid: int,
         qn: Optional[int] = None,
         fnval: int = 1,
-        fourk: int = 0,
+        fourk: int = 1,
         session_data: Optional[str] = None
     ) -> GetCheeseStreamMetaResponse:
         response = cls.get_cheese_stream_meta(
