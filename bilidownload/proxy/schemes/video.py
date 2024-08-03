@@ -1,7 +1,7 @@
 """
 Response models of video related Bilibili API requests
 """
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -249,25 +249,84 @@ class VideoStreamMetaSupportFormatItemData(VideoStreamMetaLiteSupportFormatItemD
     codecs: Optional[List[str]]
 
 
+class VideoDashVideoSegmentBaseData(BaseModel):
+
+    Initialization: int
+    indexRange: str
+
+
+class VideoDashAudioSegmentBaseData(BaseModel):
+
+    initialization: int
+    index_range: str
+
+
+class VideoDashMediaItemData(BaseModel):
+
+    SegmentBase: Union[VideoDashVideoSegmentBaseData, VideoDashAudioSegmentBaseData]
+    backupUrl: List[str]
+    backup_url: List[str]
+    bandwidth: int
+    baseUrl: str
+    base_url: str
+    codecid: int  # 7 is AVC, 12 is HEVC, and 13 is AV1
+    codecs: str
+    frameRate: Optional[str] = None
+    frame_rate: Optional[str] = None
+    height: int
+    id_field: int = Field(..., alias='id')
+    mimeType: str
+    mime_type: str
+    sar: str
+    segment_base: Union[VideoDashVideoSegmentBaseData, VideoDashAudioSegmentBaseData]
+    startWithSap: int
+    start_with_sap: int
+    width: int
+
+
+class VideoDashDolbyData(BaseModel):
+
+    type_field: int = Field(..., alias='type')  # 1 is normal, 2 is panoramic
+    audio: Optional[List[VideoDashMediaItemData]] = None
+
+
+class VideoDashFlacData(BaseModel):
+
+    display: bool  # illustrate Hi-Res or not
+    audio: Optional[VideoDashMediaItemData] = None
+
+
+class VideoDashData(BaseModel):
+
+    audio: Optional[List[VideoDashMediaItemData]] = None  # null when video has no audio
+    dolby: VideoDashDolbyData
+    duration: int  # second
+    flac: Optional[VideoDashFlacData] = None
+    minBufferTime: float
+    min_buffer_time: float
+    video: List[VideoDashMediaItemData]
+
+
 class GetVideoStreamMetaData(BaseModel):
 
+    accept_description: List[str]
+    accept_format: str
+    accept_quality: List[int]
+    dash: Optional[VideoDashData] = None
+    durl: Optional[List[VideoStreamMetaDURLItemData]] = None
+    format_field: str = Field(..., alias='format')
     from_field: str = Field(..., alias='from')
-    result: str
+    high_format: None
+    last_play_cid: int
+    last_play_time: int
     message: str
     quality: int
-    format_field: str = Field(..., alias='format')
-    timelength: int  # millisecond
-    accept_format: str
-    accept_description: List[str]
-    accept_quality: List[int]
-    video_codecid: int
+    result: str
     seek_param: str
     seek_type: str
-    durl: List[VideoStreamMetaDURLItemData]
     support_formats: List[VideoStreamMetaSupportFormatItemData]
-    high_format: None
-    last_play_time: int
-    last_play_cid: int
+    timelength: int  # millisecond
+    video_codecid: int
     view_info: None
 
 

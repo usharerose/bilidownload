@@ -44,4 +44,4 @@ class VideoMetaModel(BaseModel):
     work_title: str
     work_pages: List[VideoPageLiteItemData]
     work_formats: List[VideoFormatItemData]
-    has_dolby_audio: bool
+    work_has_hires_audio: bool = False

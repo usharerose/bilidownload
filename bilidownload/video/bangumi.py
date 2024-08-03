@@ -144,8 +144,7 @@ class BangumiVideoComponent(AbstractVideoComponent):
 
         video_stream_meta = cls.get_video_stream_meta(
             cid=sample_episode.cid,
-            bvid=sample_episode.bvid,
-            aid=sample_episode.aid,
+            epid=sample_episode.id_field,
             session_data=session_data
         )
         return VideoMetaModel(
@@ -155,7 +154,8 @@ class BangumiVideoComponent(AbstractVideoComponent):
             work_staff=cls._parse_work_staff(video_info),
             work_title=video_info.result.title,
             work_formats=cls._parse_work_formats(video_stream_meta),
-            work_pages=cls._parse_work_pages(video_info)
+            work_pages=cls._parse_work_pages(video_info),
+            work_has_hires_audio=True if video_stream_meta.result.dash.flac is not None else False
         )
 
     @classmethod

@@ -133,7 +133,8 @@ class CommonVideoComponent(AbstractVideoComponent):
             work_staff=cls._parse_work_staff(video_info),
             work_title=video_info.data.title,
             work_formats=cls._parse_work_formats(video_stream_meta),
-            work_pages=cls._parse_work_pages(video_info)
+            work_pages=cls._parse_work_pages(video_info),
+            work_has_hires_audio=True if video_stream_meta.data.dash.flac is not None else False
         )
 
     @classmethod

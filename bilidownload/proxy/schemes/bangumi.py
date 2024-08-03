@@ -373,7 +373,7 @@ class GetBangumiStreamMetaResult(BaseModel):
     bp: int
     clip_info_list: List[BangumiStreamMetaClipInfoListItemData]
     code: int
-    durl: List[BangumiStreamMetaDURLItemData]
+    durl: Optional[List[BangumiStreamMetaDURLItemData]] = None
     # TODO: determine the type of durls' item
     durls: List[Any]
     fnval: int
