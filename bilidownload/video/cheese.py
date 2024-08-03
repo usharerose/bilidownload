@@ -1,11 +1,13 @@
 """
 Component on Cheese video
 """
+import os
 from typing import List, Optional
 
 from .base import AbstractVideoComponent, register_component
 from .constants import (
     DEFAULT_STAFF_TITLE,
+    RAW_FILE_EXT,
     UNIT_CHUNK,
     VideoType,
     VideoFormatNumber,
@@ -164,8 +166,10 @@ class CheeseVideoComponent(AbstractVideoComponent):
             fnval=VideoFormatNumber.get_format(qn, True),
             session_data=session_data
         )
-        with open(location_path + title, 'wb') as f:
-            for item in video_stream_meta.data.dash.video:
-                with ProxyService.get_video_stream_response(item.base_url) as response:
-                    for chunk in response.iter_content(chunk_size=UNIT_CHUNK):
-                        f.write(chunk)
+        video_src, *_ = [item for item in video_stream_meta.data.dash.video if item.id_field == qn]
+        file_path = os.path.join(location_path, title + RAW_FILE_EXT)
+
+        with open(file_path, 'wb') as f:
+            with ProxyService.get_video_stream_response(video_src.base_url) as response:
+                for chunk in response.iter_content(chunk_size=UNIT_CHUNK):
+                    f.write(chunk)

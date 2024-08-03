@@ -388,7 +388,7 @@ class GetBangumiStreamMetaResult(BaseModel):
     message: str
     no_rexcode: int
     quality: int
-    record_info: BangumiStreamMetaRecordInfoData
+    record_info: Optional[BangumiStreamMetaRecordInfoData] = None
     result: str
     status: int
     support_formats: List[BangumiStreamMetaSupportFormatItemData]

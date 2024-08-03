@@ -1,12 +1,14 @@
 """
 Component on Bangumi video
 """
+import os
 from typing import List, Optional
 
 from .base import AbstractVideoComponent, register_component
 from .constants import (
     DEFAULT_STAFF_TITLE,
     UNIT_CHUNK,
+    RAW_FILE_EXT,
     VideoType,
     VideoFormatNumber,
     VideoQualityNumber
@@ -180,8 +182,10 @@ class BangumiVideoComponent(AbstractVideoComponent):
             fnval=VideoFormatNumber.get_format(qn, True),
             session_data=session_data
         )
-        with open(location_path + title, 'wb') as f:
-            for durl_item in video_stream_meta.result.durl:
-                with ProxyService.get_video_stream_response(durl_item.url) as response:
-                    for chunk in response.iter_content(chunk_size=UNIT_CHUNK):
-                        f.write(chunk)
+        video_src, *_ = [item for item in video_stream_meta.result.dash.video if item.id_field == qn]
+        file_path = os.path.join(location_path, title + RAW_FILE_EXT)
+
+        with open(file_path, 'wb') as f:
+            with ProxyService.get_video_stream_response(video_src.base_url) as response:
+                for chunk in response.iter_content(chunk_size=UNIT_CHUNK):
+                    f.write(chunk)
