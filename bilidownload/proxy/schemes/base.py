@@ -54,25 +54,23 @@ class VideoStreamMetaLiteSupportFormatItemData(BaseModel):
     new_description: str
 
 
-class VideoDashVideoSegmentBaseData(BaseModel):
+class VideoDashSegmentBaseData(BaseModel):
 
-    Initialization: int
-    indexRange: str
-
-
-class VideoDashAudioSegmentBaseData(BaseModel):
-
-    initialization: int
-    index_range: str
+    # for audio
+    initialization: Optional[int] = None
+    index_range: Optional[str] = None
+    # for video
+    Initialization: Optional[int] = None
+    indexRange: Optional[str] = None
 
 
 class VideoDashMediaItemData(BaseModel):
 
-    SegmentBase: Union[VideoDashVideoSegmentBaseData, VideoDashAudioSegmentBaseData]
-    backupUrl: List[str]
+    SegmentBase: Optional[VideoDashSegmentBaseData] = None
+    backupUrl: Optional[List[str]] = None
     backup_url: List[str]
     bandwidth: int
-    baseUrl: str
+    baseUrl: Optional[str] = None
     base_url: str
     codecid: int  # 7 is AVC, 12 is HEVC, and 13 is AV1
     codecs: str
@@ -80,10 +78,10 @@ class VideoDashMediaItemData(BaseModel):
     frame_rate: Optional[str] = None
     height: int
     id_field: int = Field(..., alias='id')
-    mimeType: str
+    mimeType: Optional[str] = None
     mime_type: str
     sar: str
-    segment_base: Union[VideoDashVideoSegmentBaseData, VideoDashAudioSegmentBaseData]
+    segment_base: VideoDashSegmentBaseData
     startWithSAP: Optional[int] = None
     startWithSap: Optional[int] = None
     start_with_sap: int
@@ -92,7 +90,9 @@ class VideoDashMediaItemData(BaseModel):
 
 class VideoDashDolbyData(BaseModel):
 
-    type_field: int = Field(..., alias='type')  # 1 is normal, 2 is panoramic
+    # 1 is normal, 2 is panoramic
+    # for cheese, could be 'NONE'
+    type_field: Union[int, str] = Field(..., alias='type')
     audio: Optional[List[VideoDashMediaItemData]] = None
 
 
@@ -108,6 +108,6 @@ class VideoDashData(BaseModel):
     dolby: VideoDashDolbyData
     duration: int  # second
     flac: Optional[VideoDashFlacData] = None
-    minBufferTime: float
-    min_buffer_time: float
+    minBufferTime: Optional[float] = None
+    min_buffer_time: Optional[float] = None
     video: List[VideoDashMediaItemData]

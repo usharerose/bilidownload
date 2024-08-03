@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from .base import (
     BaseResponseModel,
     PendantData,
+    VideoDashData,
     VideoStreamMetaLiteSupportFormatItemData
 )
 
@@ -307,54 +308,6 @@ class GetCheeseDetailResponse(BaseResponseModel):
     data: Optional[GetCheeseDetailData] = None
 
 
-class CheeseStreamDashMediaSegmentBaseData(BaseModel):
-
-    initialization: str
-    index_range: str
-
-
-class CheeseStreamMetaDashMediaItemData(BaseModel):
-
-    backup_url: List[str]
-    bandwidth: int
-    base_url: str
-    codecid: int
-    codecs: str
-    frame_rate: str
-    height: int
-    id_field: int = Field(..., alias='id')
-    md5: str
-    mime_type: str
-    noRexcode: int
-    sar: str
-    segment_base: CheeseStreamDashMediaSegmentBaseData
-    size: int
-    start_with_sap: int
-    width: int
-
-
-class CheeseStreamDashDolbyData(BaseModel):
-
-    # TODO: determine the type of audio's item
-    audio: List[Any]
-    type: str
-
-
-class CheeseStreamDashLossLessAudioData(BaseModel):
-
-    isLosslessAudio: bool
-
-
-class CheeseStreamMetaDashData(BaseModel):
-
-    audio: List[CheeseStreamMetaDashMediaItemData]
-    dolby: CheeseStreamDashDolbyData
-    duration: int
-    losslessAudio: CheeseStreamDashLossLessAudioData
-    min_buffer_time: float
-    video: List[CheeseStreamMetaDashMediaItemData]
-
-
 class BangumiStreamMetaSupportFormatItemData(VideoStreamMetaLiteSupportFormatItemData):
 
     codecs: Optional[List[str]]
@@ -371,7 +324,7 @@ class GetCheeseStreamMetaData(BaseModel):
     accept_format: str
     accept_quality: List[int]
     code: int
-    dash: CheeseStreamMetaDashData
+    dash: Optional[VideoDashData] = None
     fnval: int
     fnver: int
     format_field: str = Field(..., alias='format')
