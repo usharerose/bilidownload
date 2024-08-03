@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from .base import (
     BaseResponseModel,
     UserOfficialInfoData,
+    VideoDashData,
     VideoDimensionData,
     VideoStreamMetaLiteSupportFormatItemData
 )
@@ -247,64 +248,6 @@ class VideoStreamMetaSupportFormatItemData(VideoStreamMetaLiteSupportFormatItemD
     display_desc: str
     superscript: str
     codecs: Optional[List[str]]
-
-
-class VideoDashVideoSegmentBaseData(BaseModel):
-
-    Initialization: int
-    indexRange: str
-
-
-class VideoDashAudioSegmentBaseData(BaseModel):
-
-    initialization: int
-    index_range: str
-
-
-class VideoDashMediaItemData(BaseModel):
-
-    SegmentBase: Union[VideoDashVideoSegmentBaseData, VideoDashAudioSegmentBaseData]
-    backupUrl: List[str]
-    backup_url: List[str]
-    bandwidth: int
-    baseUrl: str
-    base_url: str
-    codecid: int  # 7 is AVC, 12 is HEVC, and 13 is AV1
-    codecs: str
-    frameRate: Optional[str] = None
-    frame_rate: Optional[str] = None
-    height: int
-    id_field: int = Field(..., alias='id')
-    mimeType: str
-    mime_type: str
-    sar: str
-    segment_base: Union[VideoDashVideoSegmentBaseData, VideoDashAudioSegmentBaseData]
-    startWithSap: int
-    start_with_sap: int
-    width: int
-
-
-class VideoDashDolbyData(BaseModel):
-
-    type_field: int = Field(..., alias='type')  # 1 is normal, 2 is panoramic
-    audio: Optional[List[VideoDashMediaItemData]] = None
-
-
-class VideoDashFlacData(BaseModel):
-
-    display: bool  # illustrate Hi-Res or not
-    audio: Optional[VideoDashMediaItemData] = None
-
-
-class VideoDashData(BaseModel):
-
-    audio: Optional[List[VideoDashMediaItemData]] = None  # null when video has no audio
-    dolby: VideoDashDolbyData
-    duration: int  # second
-    flac: Optional[VideoDashFlacData] = None
-    minBufferTime: float
-    min_buffer_time: float
-    video: List[VideoDashMediaItemData]
 
 
 class GetVideoStreamMetaData(BaseModel):
