@@ -47,7 +47,7 @@ class VideoService:
         aid: Optional[int] = None,
         epid: Optional[int] = None,
         qn: int = VideoQualityNumber.P480.value,
-        is_dolby_audio: bool = False,
+        is_hires_audio: bool = False,
         title: str = '',
         session_data: Optional[str] = None
     ) -> None:
@@ -60,6 +60,6 @@ class VideoService:
             epid=epid,
             title=title,
             qn=qn,
-            is_dolby_audio=is_dolby_audio,
+            is_hires_audio=is_hires_audio,
             session_data=session_data
         )

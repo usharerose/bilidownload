@@ -168,7 +168,7 @@ class BangumiVideoComponent(AbstractVideoComponent):
         epid: Optional[int] = None,
         title: str = '',
         qn: int = VideoQualityNumber.P480.value,
-        is_dolby_audio: bool = False,
+        is_hires_audio: bool = False,
         session_data: Optional[str] = None
     ) -> None:
         video_stream_meta = cls.get_video_stream_meta(
@@ -177,7 +177,7 @@ class BangumiVideoComponent(AbstractVideoComponent):
             aid=aid,
             epid=epid,
             qn=qn,
-            fnval=VideoFormatNumber.get_format(qn, is_dolby_audio),
+            fnval=VideoFormatNumber.get_format(qn, True),
             session_data=session_data
         )
         with open(location_path + title, 'wb') as f:

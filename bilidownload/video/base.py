@@ -67,7 +67,7 @@ class AbstractVideoComponent(ABC):
         epid: Optional[int] = None,
         title: str = '',
         qn: int = VideoQualityNumber.P480.value,
-        is_dolby_audio: bool = False,
+        is_hires_audio: bool = False,
         session_data: Optional[str] = None
     ) -> None:
         """
