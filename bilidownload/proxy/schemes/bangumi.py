@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from .base import (
     BaseResponseModel,
     PendantData,
+    VideoDashData,
     VideoDimensionData,
     VideoStreamMetaLiteSupportFormatItemData
 )
@@ -373,7 +374,8 @@ class GetBangumiStreamMetaResult(BaseModel):
     bp: int
     clip_info_list: List[BangumiStreamMetaClipInfoListItemData]
     code: int
-    durl: List[BangumiStreamMetaDURLItemData]
+    dash: Optional[VideoDashData] = None
+    durl: Optional[List[BangumiStreamMetaDURLItemData]] = None
     # TODO: determine the type of durls' item
     durls: List[Any]
     fnval: int
@@ -386,7 +388,7 @@ class GetBangumiStreamMetaResult(BaseModel):
     message: str
     no_rexcode: int
     quality: int
-    record_info: BangumiStreamMetaRecordInfoData
+    record_info: Optional[BangumiStreamMetaRecordInfoData] = None
     result: str
     status: int
     support_formats: List[BangumiStreamMetaSupportFormatItemData]
@@ -399,4 +401,5 @@ class GetBangumiStreamMetaResult(BaseModel):
 
 
 class GetBangumiStreamMetaResponse(BaseResponseModel):
+
     result: Optional[GetBangumiStreamMetaResult] = None

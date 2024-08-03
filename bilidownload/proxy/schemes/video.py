@@ -1,13 +1,14 @@
 """
 Response models of video related Bilibili API requests
 """
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
 from .base import (
     BaseResponseModel,
     UserOfficialInfoData,
+    VideoDashData,
     VideoDimensionData,
     VideoStreamMetaLiteSupportFormatItemData
 )
@@ -100,12 +101,12 @@ class VideoSubtitleAuthorData(BaseModel):
 
 class VideoSubtitleItemData(BaseModel):
 
-    id: int                          # identifier of subtitle
-    lan: str                         # Language
-    lan_doc: str                     # Language name of subtitle language
-    is_lock: bool                    # Whether the subtitle is locked or not
-    author_mid: int                  # Identifier of user who uploads the subtitle
-    subtitle_url: str                # URL of subtitle JSON file
+    id: int                           # identifier of subtitle
+    lan: str                          # Language
+    lan_doc: str                      # Language name of subtitle language
+    is_lock: bool                     # Whether the subtitle is locked or not
+    author_mid: Optional[int] = None  # Identifier of user who uploads the subtitle
+    subtitle_url: str                 # URL of subtitle JSON file
     author: VideoSubtitleAuthorData
 
 
@@ -251,23 +252,24 @@ class VideoStreamMetaSupportFormatItemData(VideoStreamMetaLiteSupportFormatItemD
 
 class GetVideoStreamMetaData(BaseModel):
 
+    accept_description: List[str]
+    accept_format: str
+    accept_quality: List[int]
+    dash: Optional[VideoDashData] = None
+    durl: Optional[List[VideoStreamMetaDURLItemData]] = None
+    format_field: str = Field(..., alias='format')
     from_field: str = Field(..., alias='from')
-    result: str
+    high_format: None
+    last_play_cid: int
+    last_play_time: int
     message: str
     quality: int
-    format_field: str = Field(..., alias='format')
-    timelength: int  # millisecond
-    accept_format: str
-    accept_description: List[str]
-    accept_quality: List[int]
-    video_codecid: int
+    result: str
     seek_param: str
     seek_type: str
-    durl: List[VideoStreamMetaDURLItemData]
     support_formats: List[VideoStreamMetaSupportFormatItemData]
-    high_format: None
-    last_play_time: int
-    last_play_cid: int
+    timelength: int  # millisecond
+    video_codecid: int
     view_info: None
 
 

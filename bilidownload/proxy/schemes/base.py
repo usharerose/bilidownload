@@ -1,9 +1,9 @@
 """
 Base models of Bilibili API requests
 """
-from typing import Optional
+from typing import List, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class BaseResponseModel(BaseModel):
@@ -52,3 +52,62 @@ class VideoStreamMetaLiteSupportFormatItemData(BaseModel):
 
     quality: int  # qn
     new_description: str
+
+
+class VideoDashSegmentBaseData(BaseModel):
+
+    # for audio
+    initialization: Optional[int] = None
+    index_range: Optional[str] = None
+    # for video
+    Initialization: Optional[int] = None
+    indexRange: Optional[str] = None
+
+
+class VideoDashMediaItemData(BaseModel):
+
+    SegmentBase: Optional[VideoDashSegmentBaseData] = None
+    backupUrl: Optional[List[str]] = None
+    backup_url: List[str]
+    bandwidth: int
+    baseUrl: Optional[str] = None
+    base_url: str
+    codecid: int  # 7 is AVC, 12 is HEVC, and 13 is AV1
+    codecs: str
+    frameRate: Optional[str] = None
+    frame_rate: Optional[str] = None
+    height: int
+    id_field: int = Field(..., alias='id')
+    mimeType: Optional[str] = None
+    mime_type: str
+    sar: str
+    segment_base: VideoDashSegmentBaseData
+    startWithSAP: Optional[int] = None
+    startWithSap: Optional[int] = None
+    start_with_sap: int
+    width: int
+
+
+class VideoDashDolbyData(BaseModel):
+
+    # 1 is normal, 2 is panoramic
+    # for cheese, could be 'NONE'
+    type_field: Union[int, str] = Field(..., alias='type')
+    audio: Optional[List[VideoDashMediaItemData]] = None
+
+
+class VideoDashFlacData(BaseModel):
+
+    display: bool  # illustrate Hi-Res or not
+    audio: Optional[VideoDashMediaItemData] = None
+
+
+class VideoDashData(BaseModel):
+
+    audio: Optional[List[VideoDashMediaItemData]] = None  # null when video has no audio
+    dolby: VideoDashDolbyData
+    duration: int  # second
+    flac: Optional[VideoDashFlacData] = None
+    minBufferTime: Optional[float] = None
+    min_buffer_time: Optional[float] = None
+    video: List[VideoDashMediaItemData]
