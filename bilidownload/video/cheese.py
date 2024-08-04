@@ -166,10 +166,27 @@ class CheeseVideoComponent(AbstractVideoComponent):
             fnval=VideoFormatNumber.get_format(qn, True),
             session_data=session_data
         )
-        video_src, *_ = [item for item in video_stream_meta.data.dash.video if item.id_field == qn]
-        file_path = os.path.join(location_path, title + RAW_FILE_EXT)
 
+        video_stocks = [item for item in video_stream_meta.data.dash.video if item.id_field <= qn]
+        if not video_stocks:
+            video_stocks = [video_stream_meta.data.dash.video[0]]
+        video_src, *_ = video_stocks
+        file_path = os.path.join(location_path, title + RAW_FILE_EXT)
         with open(file_path, 'wb') as f:
             with ProxyService.get_video_stream_response(video_src.base_url) as response:
+                for chunk in response.iter_content(chunk_size=UNIT_CHUNK):
+                    f.write(chunk)
+
+        if is_hires_audio:
+            audio_src = video_stream_meta.data.dash.flac.audio
+        else:
+            dolby_audios = video_stream_meta.data.dash.dolby.audio
+            if dolby_audios:
+                audio_src, *_ = dolby_audios
+            else:
+                audio_src, *_ = video_stream_meta.data.dash.audio
+        audio_file_path = os.path.join(location_path, f'{title}_audio{RAW_FILE_EXT}')
+        with open(audio_file_path, 'wb') as f:
+            with ProxyService.get_video_stream_response(audio_src.base_url) as response:
                 for chunk in response.iter_content(chunk_size=UNIT_CHUNK):
                     f.write(chunk)
